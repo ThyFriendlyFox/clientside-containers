@@ -203,6 +203,22 @@ export function buildComposeProject(env: Environment): ComposeProject {
     volumes.pg_data = {};
   }
 
+  // OpenTTD dedicated server (open source transport simulation game).
+  if (env.apps.includes("openttd")) {
+    services.openttd = {
+      image: "ghcr.io/ropenttd/openttd:latest",
+      container_name: "openttd",
+      restart: "unless-stopped",
+      networks: [NETWORK],
+      ports: ["3979:3979/tcp", "3979:3979/udp"],
+      environment: { loadgame: "false", PUID: "1000", PGID: "1000" },
+      volumes: ["openttd_data:/config"],
+      cpus,
+      mem_limit: mem,
+    };
+    volumes.openttd_data = {};
+  }
+
   // Browser-based Android screen view (ws-scrcpy), attaches to the device over ADB.
   if (env.apps.includes("scrcpy-web") && base.family === "mobile" && base.id !== "ios-external") {
     services["scrcpy-web"] = {
@@ -297,5 +313,6 @@ export function environmentEndpoints(env: Environment): { label: string; url: st
   if (env.apps.includes("n8n")) endpoints.push({ label: "n8n editor", url: "http://localhost:5678" });
   if (env.apps.includes("chrome")) endpoints.push({ label: "Chrome CDP", url: "ws://localhost:3000" });
   if (env.apps.includes("vscode")) endpoints.push({ label: "VS Code", url: "http://localhost:8443" });
+  if (env.apps.includes("openttd")) endpoints.push({ label: "OpenTTD server", url: "localhost:3979 (Multiplayer → Add Server)" });
   return endpoints;
 }

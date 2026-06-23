@@ -50,7 +50,8 @@ The **Environments** tab builds the heavier, "simulate an OS" experience:
     iOS is offered as an **external macOS runner** target (iOS cannot run in a Linux
     container, so it drives a macOS host over Appium/WebDriverAgent).
 - Add **apps & services** from the catalog (n8n, a Chrome CDP endpoint,
-  Playwright, VS Code, PostgreSQL, Appium, ws-scrcpy, …). Templates wire common
+  Playwright, VS Code, PostgreSQL, Appium, ws-scrcpy, an OpenTTD game server, …).
+  Templates wire common
   combinations so that, for example, **n8n drives Chrome through Playwright**, or
   **Appium tests an app on the Android emulator**, over the internal network out
   of the box.

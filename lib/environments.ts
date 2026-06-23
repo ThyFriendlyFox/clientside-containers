@@ -89,6 +89,7 @@ export const APP_CATALOG: AppSpec[] = [
   { id: "firefox", label: "Firefox", kind: "desktop-app", category: "browser" },
   { id: "appium", label: "Appium (mobile automation)", kind: "service", category: "mobile" },
   { id: "scrcpy-web", label: "scrcpy (web Android view)", kind: "service", category: "mobile" },
+  { id: "openttd", label: "OpenTTD (game server)", kind: "service", category: "game" },
 ];
 
 export interface EnvTemplate {
@@ -172,6 +173,18 @@ export const ENV_TEMPLATES: EnvTemplate[] = [
     presetId: null,
     wiring:
       "Redroid runs Android and exposes ADB on 5555. ws-scrcpy streams the screen to the browser; Appium connects over ADB for automation.",
+  },
+  {
+    id: "openttd",
+    label: "OpenTTD (one-click game server)",
+    description:
+      "A one-click OpenTTD dedicated server. A good smoke test of the catalog → compose → export pipeline: launch it, then connect an OpenTTD client to play.",
+    baseId: "headless",
+    apps: ["openttd"],
+    resources: { cpus: 1, memoryMb: 1024, diskGb: 4 },
+    presetId: null,
+    wiring:
+      "Runs the OpenTTD dedicated server on port 3979 (TCP/UDP). Connect from an OpenTTD client via Multiplayer → Add Server using <host>:3979. Saves and config persist in the openttd_data volume.",
   },
   {
     id: "ios-appium",
