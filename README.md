@@ -14,18 +14,23 @@ it is a static bundle and every container runs in the visitor's tab.
 
 The dashboard is a grid of containers. Each card opens into an interface (like a
 remote desktop, but for that container), and each card has a settings gear for
-per-container configuration. There are three tiers — all of them containers:
+per-container configuration. The tiers are a spectrum sized by how much OS you
+need — the smallest is the NVIDIA agent runtime:
 
 | Tier | What runs | Interface |
 | --- | --- | --- |
-| **Headless** | A JavaScript runtime in a **Web Worker** that answers API calls. | A request/response console. |
+| **Agent sandbox** | The OpenShell runtime for autonomous agents ([NemoClaw](https://github.com/NVIDIA/NemoClaw) + [OpenShell](https://github.com/NVIDIA/OpenShell)), in a **Web Worker**, governed by a declarative YAML policy. | Policy editor + API/egress console. |
 | **App bottle** | A single program inside a minified Linux. | The program's terminal. |
 | **Mini OS** | A full **minified Linux** booted in your browser (real x86 via WebAssembly). | The Linux screen + shell. |
 
+OpenShell is the runtime for autonomous AI agents, but it normally requires a
+supported host plus a local runtime (Docker, Podman, or MicroVM virtualization).
+clientside-containers removes that barrier: the agent runtime — and
+progressively larger minified OSes — run in the browser, on any device.
+
 The Mini OS and App tiers boot a real Linux kernel with [v86](https://github.com/copy/v86),
 an x86 emulator compiled to WebAssembly. The kernel, BIOS, and WASM engine are
-served as static assets from `public/v86/`, so there is nothing to install and
-nothing leaves the page to run.
+served as static assets from `public/v86/`, so there is nothing to install.
 
 ## How it works
 
@@ -41,15 +46,16 @@ components/
   NewContainerMenu.tsx Pick a tier and create
   runtime/
     EmulatorScreen.tsx  Mounts v86 (app + mini-OS tiers)
-    HeadlessConsole.tsx Web Worker API console (headless tier)
+    AgentConsole.tsx    Agent tier: YAML policy editor + API/egress console
 lib/
   container.ts      Container model, tiers, bottled-app catalog
   containers-db.ts  IndexedDB persistence (containers survive reloads)
+  policy.ts         OpenShell policy: parse / serialize / evaluate egress
   v86-runtime.ts    Loads the v86 engine and boots the guest
   base-path.ts      Base path for static assets under a sub-path
 public/
   v86/              v86 engine (libv86.mjs, v86.wasm), BIOS, Linux bzImage
-  workers/          headless-worker.js
+  workers/          headless-worker.js (agent runtime)
 ```
 
 State (your containers and their settings) is stored in **IndexedDB**, so it
