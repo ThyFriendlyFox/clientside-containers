@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@webcontainer/api": "^1.6.4",
+    "idb": "^8.0.3",
     "js-yaml": "^4.1.0",
     "jszip": "^3.10.1",
     "next": "^15.3.0",

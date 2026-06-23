@@ -2,6 +2,17 @@ import { AGENTS, type ContainerKind, type ContainerSettings, type ContainerView,
 import { DEFAULT_CONTAINER_SETTINGS, mergeSettings, policyForSettings } from "./container-settings";
 import { getBase, OS_BASES } from "./environments";
 import { parsePolicy, policyToYaml } from "./policy";
+import { isBrowser } from "./clientside-store";
+import { getRuntime, runtimeDesktopPath } from "./browser-runtime";
+
+function desktopUrlFor(id: string, hasGui: boolean): string | null {
+  if (!hasGui) return null;
+  if (isBrowser()) {
+    const rt = getRuntime(id);
+    return rt?.desktopPath ?? runtimeDesktopPath(id);
+  }
+  return null;
+}
 
 export function defaultSettingsForEnvironment(env: Pick<Environment, "baseId">): ContainerSettings {
   const base = getBase(env.baseId);
@@ -25,7 +36,7 @@ export function sandboxToView(s: Sandbox): ContainerView {
     settings: s.settings,
     policyYaml: s.policyYaml,
     subtitle: AGENTS[s.agent].label,
-    desktopUrl: minios && base && base.desktop !== "none" ? `http://localhost:${base.guiPort}` : null,
+    desktopUrl: desktopUrlFor(s.id, !!(minios && base && base.desktop !== "none")),
     detailHref: `/console/sandboxes/view?id=${s.id}`,
   };
 }
@@ -44,7 +55,7 @@ export function environmentToView(e: Environment): ContainerView {
     settings: e.settings,
     policyYaml: e.policyYaml,
     subtitle: e.apps.length ? e.apps.join(", ") : base.label,
-    desktopUrl: minios && base.desktop !== "none" ? `http://localhost:${base.guiPort}` : null,
+    desktopUrl: desktopUrlFor(e.id, !!(minios && base.desktop !== "none")),
     detailHref: `/console/environments/view?id=${e.id}`,
   };
 }

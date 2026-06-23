@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { ContainerView } from "@/lib/types";
 import { StatusBadge } from "./badges";
+import { DesktopBottleFrame } from "./DesktopBottleFrame";
 
 interface Props {
   container: ContainerView;
@@ -45,9 +46,9 @@ export function ContainerCard({ container, onOpenSettings }: Props) {
             </button>
           )}
           {isMinios && container.desktopUrl && (
-            <a href={container.desktopUrl} target="_blank" rel="noreferrer" className="btn-primary px-2.5 py-1.5 text-xs">
+            <Link href={container.desktopUrl} className="btn-primary px-2.5 py-1.5 text-xs">
               Open desktop
-            </a>
+            </Link>
           )}
           <button type="button" onClick={onOpenSettings} className="btn-ghost px-2.5 py-1.5 text-xs">
             Settings
@@ -60,24 +61,13 @@ export function ContainerCard({ container, onOpenSettings }: Props) {
 
       {expanded && isMinios && (
         <div className="border-t border-ink-700 bg-ink-950/80 p-4">
-          <div className="flex aspect-video items-center justify-center rounded-lg border border-dashed border-ink-600 bg-ink-900">
+          <div className="aspect-video overflow-hidden rounded-lg border border-ink-600">
             {container.desktopUrl ? (
-              <div className="text-center">
-                <p className="text-sm text-zinc-400">Desktop bottle running</p>
-                <a
-                  href={container.desktopUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-block text-sm text-nv-green hover:underline"
-                >
-                  {container.desktopUrl}
-                </a>
-                <p className="mt-2 text-xs text-zinc-600">
-                  Export the bundle and run <span className="font-mono">docker compose up -d</span> to connect.
-                </p>
-              </div>
+              <DesktopBottleFrame containerId={container.id} name={container.name} className="h-full w-full" />
             ) : (
-              <p className="text-sm text-zinc-500">Mobile / non-GUI bottle — interact via ADB or Appium endpoints.</p>
+              <div className="flex h-full items-center justify-center bg-ink-900">
+                <p className="text-sm text-zinc-500">Mobile / non-GUI bottle — interact via ADB or Appium endpoints.</p>
+              </div>
             )}
           </div>
           <p className="mt-2 text-xs text-zinc-500">

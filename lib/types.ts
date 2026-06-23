@@ -23,9 +23,9 @@ export const AGENTS: Record<AgentKind, { label: string; vendor: string; docs: st
   },
 };
 
-export type ComputeDriver = "docker" | "podman" | "microvm" | "kubernetes";
+export type ComputeDriver = "browser" | "docker" | "podman" | "microvm" | "kubernetes";
 
-export const DRIVERS: ComputeDriver[] = ["docker", "podman", "microvm", "kubernetes"];
+export const DRIVERS: ComputeDriver[] = ["browser", "docker", "podman", "microvm", "kubernetes"];
 
 export type SandboxStatus = "provisioning" | "running" | "stopped" | "error";
 

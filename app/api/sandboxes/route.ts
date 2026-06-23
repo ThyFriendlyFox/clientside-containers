@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const CreateSchema = z.object({
   name: z.string().max(64).optional(),
   agent: z.enum(["openclaw", "hermes", "langchain-deepagents-code"]),
-  driver: z.enum(["docker", "podman", "microvm", "kubernetes"]),
+  driver: z.enum(["browser", "docker", "podman", "microvm", "kubernetes"]),
   provider: z.string().nullable().optional(),
   presetId: z.string().nullable().optional(),
 });

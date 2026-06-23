@@ -15,7 +15,7 @@ export function SandboxManager() {
 
   const [name, setName] = useState("");
   const [agent, setAgent] = useState<AgentKind>("openclaw");
-  const [driver, setDriver] = useState<ComputeDriver>("docker");
+  const [driver, setDriver] = useState<ComputeDriver>("browser");
   const [provider, setProvider] = useState("");
   const [presetId, setPresetId] = useState("");
 

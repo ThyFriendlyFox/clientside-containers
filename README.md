@@ -14,12 +14,15 @@ decisions in real time.
 A fully interactive demo is published to GitHub Pages:
 **https://thyfriendlyfox.github.io/clientside-containers/**
 
-The demo is a static export that runs the simulation backend entirely in the
-browser — every `/api/*` call is served client-side (see
-`components/DemoBridge.tsx`), so sandboxes, environments, policy editing, the
-egress checker, and bundle export all work with no server. It is deployed by the
-[`Deploy demo to GitHub Pages`](.github/workflows/deploy-demo.yml) workflow on
-every push to `main`.
+Everything runs in your browser — no server. Sandboxes boot in **Web Workers**,
+mini OS bottles stream in-tab, state persists in **IndexedDB**, and when
+cross-origin isolation is active (via the bundled COI service worker),
+**WebContainers** can boot headless Linux runtimes. Every `/api/*` call is
+handled by `components/ClientsideProvider.tsx` and `lib/clientside-api.ts`.
+Docker Compose export is optional for running the same bundle on a native host.
+
+Deployed by [`Deploy demo to GitHub Pages`](.github/workflows/deploy-demo.yml)
+on every push to `main`.
 
 > **Enabling Pages (one time):** in the repository, go to **Settings → Pages**
 > and set **Source** to **GitHub Actions**. The next push to `main` (or a manual
@@ -29,9 +32,9 @@ every push to `main`.
 
 | Area | Description |
 | --- | --- |
-| **Sandbox lifecycle** | Create, inspect, and terminate isolated sandboxes across the `docker`, `podman`, `microvm`, and `kubernetes` compute drivers. |
+| **Sandbox lifecycle** | Create, inspect, and terminate isolated sandboxes. Default driver is `browser` (Web Workers / WebContainers); export to `docker`, `podman`, `microvm`, or `kubernetes` when needed. |
 | **Environments** | A heavier, OS-flavored tier (much like Bottles): a full desktop base plus preinstalled apps/services — e.g. n8n wired to a Chrome CDP endpoint via Playwright. |
-| **Export & desktop** | Export an environment as a runnable Compose bundle with autostart units, or run it from the clientside-containers Desktop companion app that starts it on boot. |
+| **Export & desktop** | Optionally export an environment as a native Docker Compose bundle, or run it from the clientside-containers Desktop companion app. Primary execution stays in the browser. |
 | **Network policy** | Edit declarative OpenShell policy YAML and hot-reload the network/inference sections on a running sandbox. |
 | **Egress engine** | Probe an outbound request (binary, host, port, method) and see the policy verdict, mirroring OpenShell's three-way decision. |
 | **Routed inference** | Route model traffic through the privacy router to a managed backend instead of caller credentials. |
@@ -59,38 +62,43 @@ The **Environments** tab builds the heavier, "simulate an OS" experience:
   the OpenShell policy, start/stop scripts, and autostart units for systemd,
   launchd, and Windows Task Scheduler.
 
-The **clientside-containers Desktop** companion app (in [`desktop/`](./desktop)) runs those
-bundles on the user's machine via Docker and registers a login item so flagged
-environments start on boot — taking the environment off the browser and onto the
-desktop. See [`desktop/README.md`](./desktop/README.md).
+The **clientside-containers Desktop** companion app (in [`desktop/`](./desktop)) is
+optional — it runs exported Compose bundles on a native Docker host. The default
+path is in-browser execution. See [`desktop/README.md`](./desktop/README.md).
 
 ## Architecture
 
 ```
-app/                Next.js App Router (UI pages + API route handlers)
+app/                Next.js App Router (static export for GitHub Pages)
   page.tsx          Landing page
-  console/          Console (overview, sandboxes, environments, policies, providers, desktop)
-  api/              REST endpoints backing the console
-components/         React UI components
+  console/          Console + in-tab runtime views
+components/
+  ClientsideProvider.tsx   Boots IndexedDB, fetch shim, browser runtimes
 lib/
-  gateway.ts        Backend adapter (simulation or real OpenShell gateway)
-  policy.ts         Policy model, presets, and the egress decision engine
-  environments.ts   OS bases, app catalog, and environment templates
-  compose.ts        docker-compose generator (desktop + n8n + Chrome CDP wiring)
-  export.ts         Export bundle generator (scripts + autostart units + zip)
-  store.ts          In-memory store used in simulation mode
-  types.ts          Shared domain types
-desktop/            Electron companion app: run bundles locally, start on boot
+  clientside-api.ts        Browser-side REST router (no server)
+  clientside-store.ts      IndexedDB hydration + persistence
+  browser-runtime/         Web Workers, WebContainers, desktop bottle frames
+  gateway.ts               Control plane (clientside in browser; gateway mode optional)
+  policy.ts                Policy model, presets, egress engine
+  environments.ts          OS bases, app catalog, templates
+  compose.ts               docker-compose generator (optional native export)
+  export.ts                Zip bundle for native Docker hosts
+  idb-store.ts             IndexedDB adapter
+  seed.ts                  First-visit demo data
+desktop/            Optional Electron companion for native Docker export
 ```
 
-The console talks to a **backend adapter** (`lib/gateway.ts`) that runs in one of
-two modes:
+**Clientside runtime** (default):
 
-- **`simulation`** (default) — an in-process model of the OpenShell gateway and
-  policy engine. The console is fully functional with no external dependencies,
-  which makes it suitable for local development and demos.
-- **`gateway`** — proxies requests to a real OpenShell gateway control-plane API
-  at `OPENSHELL_GATEWAY_URL`.
+- **Headless sandboxes** — Web Worker agent loop in this tab; WebContainers when
+  `crossOriginIsolated` (COI service worker registers on static hosts).
+- **Mini OS bottles** — streamed desktop UI in an iframe (`/console/runtime/desktop`).
+- **Persistence** — IndexedDB; survives reloads.
+- **Policy & egress** — OpenShell policy model evaluated in-tab.
+
+Optional **`gateway`** mode proxies to a real OpenShell gateway at
+`OPENSHELL_GATEWAY_URL` for operators who want a remote control plane instead of
+the in-browser runtime.
 
 ## Getting started
 

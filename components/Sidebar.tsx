@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
+import { useClientside } from "./ClientsideProvider";
 
 const NAV = [
   { href: "/console", label: "Containers", exact: true },
@@ -13,8 +14,11 @@ const NAV = [
   { href: "/console/desktop", label: "Desktop app" },
 ];
 
-export function Sidebar({ mode }: { mode: string }) {
+export function Sidebar() {
   const pathname = usePathname();
+  const { mode, capabilities } = useClientside();
+  const wcReady = capabilities.webContainers;
+
   return (
     <aside className="flex w-60 flex-col border-r border-ink-800 bg-ink-900/50 p-4">
       <Link href="/" className="px-2 py-1 text-base">
@@ -40,9 +44,12 @@ export function Sidebar({ mode }: { mode: string }) {
       </nav>
       <div className="mt-auto space-y-3 px-2 text-xs text-zinc-500">
         <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 rounded-full ${mode === "gateway" ? "bg-nv-green" : "bg-amber-400"}`} />
-          <span>{mode === "gateway" ? "Connected to gateway" : "Simulation mode"}</span>
+          <span className="h-2 w-2 rounded-full bg-nv-green" />
+          <span>{mode === "clientside" ? "Clientside runtime" : mode}</span>
         </div>
+        {wcReady && (
+          <p className="text-zinc-600">WebContainers active</p>
+        )}
         <div className="flex gap-3">
           <a href="https://github.com/NVIDIA/NemoClaw" target="_blank" rel="noreferrer" className="hover:text-nv-green">
             NemoClaw
