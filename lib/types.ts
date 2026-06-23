@@ -57,6 +57,48 @@ export interface Sandbox {
   logs: LogEntry[];
 }
 
+// --- Environments: the heavier, OS-flavored tier ---------------------------
+
+export type DesktopAccess = "kasmvnc" | "novnc" | "web-viewer" | "none";
+
+export interface OsBase {
+  id: string;
+  label: string;
+  image: string;
+  desktop: DesktopAccess;
+  guiPort: number;
+  note: string;
+}
+
+export interface AppSpec {
+  id: string;
+  label: string;
+  // Long-lived service (own container) vs an app installed into the desktop base.
+  kind: "service" | "desktop-app";
+  category: string;
+}
+
+export interface EnvResources {
+  cpus: number;
+  memoryMb: number;
+  diskGb: number;
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  templateId: string | null;
+  baseId: string;
+  apps: string[];
+  resources: EnvResources;
+  driver: ComputeDriver;
+  status: SandboxStatus;
+  policyYaml: string;
+  autostart: boolean;
+  createdAt: string;
+  logs: LogEntry[];
+}
+
 export type Verdict = "allow" | "route" | "deny";
 
 export interface EgressRequest {
