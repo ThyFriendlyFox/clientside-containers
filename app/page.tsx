@@ -31,8 +31,8 @@ const FEATURES = [
     body: "A heavier tier with full desktops (Windows, Ubuntu) and mobile OSes (Android via Redroid or an emulator) — wire up n8n, Chrome, Playwright, or Appium app testing in one click.",
   },
   {
-    title: "Export & run on the desktop",
-    body: "Export any environment as a Compose bundle with autostart units, or run it from the NemoClaw Desktop companion app that starts on boot.",
+    title: "Container grid",
+    body: "All sandboxes and environments in one running grid. Expand any into a minified OS bottle, or keep it headless — per-container settings for runtime, networking, and safety rules.",
   },
 ];
 

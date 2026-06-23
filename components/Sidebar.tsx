@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 
 const NAV = [
-  { href: "/console", label: "Overview", exact: true },
+  { href: "/console", label: "Containers", exact: true },
   { href: "/console/sandboxes", label: "Sandboxes" },
   { href: "/console/environments", label: "Environments" },
   { href: "/console/policies", label: "Network policies" },

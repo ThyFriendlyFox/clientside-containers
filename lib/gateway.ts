@@ -7,9 +7,17 @@ import {
   evaluateEgress,
 } from "./policy";
 import { DEFAULT_RESOURCES, ENV_TEMPLATES, getTemplate } from "./environments";
+import {
+  applyContainerUpdate,
+  defaultSettingsForEnvironment,
+  listContainerViews,
+  type UpdateContainerInput,
+} from "./containers";
+import { DEFAULT_CONTAINER_SETTINGS, policyForSettings } from "./container-settings";
 import type {
   AgentKind,
   ComputeDriver,
+  ContainerView,
   EgressRequest,
   EgressResult,
   EnvResources,
@@ -78,6 +86,7 @@ function seed(): void {
     createdAt: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
     policyYaml: policyToYaml(githubPolicy),
     logs: [],
+    settings: { ...DEFAULT_CONTAINER_SETTINGS },
   };
   appendLog(demo, "info", "Sandbox provisioned on docker driver.");
   appendLog(demo, "info", "Agent openclaw started with provider claude-managed.");
@@ -99,6 +108,7 @@ function seed(): void {
     autostart: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
     logs: [],
+    settings: defaultSettingsForEnvironment({ baseId: tmpl.baseId }),
   };
   appendLog(env, "info", "Environment provisioned from template windows-n8n-chrome.");
   appendLog(env, "info", "Services started: desktop, chrome (CDP), n8n.");
@@ -173,6 +183,7 @@ export async function createSandbox(input: CreateSandboxInput): Promise<Sandbox>
     createdAt: new Date().toISOString(),
     policyYaml: policyToYaml(policy),
     logs: [],
+    settings: { ...DEFAULT_CONTAINER_SETTINGS },
   };
   appendLog(sandbox, "info", `Sandbox provisioned on ${sandbox.driver} driver.`);
   appendLog(
@@ -324,6 +335,7 @@ export async function createEnvironment(input: CreateEnvironmentInput): Promise<
     autostart: input.autostart ?? false,
     createdAt: new Date().toISOString(),
     logs: [],
+    settings: defaultSettingsForEnvironment({ baseId }),
   };
   appendLog(
     env,
@@ -364,3 +376,47 @@ export async function setEnvironmentAutostart(id: string, autostart: boolean): P
 
 // Reference template ids available to clients (kept stable for tests/UI).
 export const TEMPLATE_IDS = ENV_TEMPLATES.map((t) => t.id);
+
+// --- Unified container grid -----------------------------------------------
+
+export async function listContainers(): Promise<ContainerView[]> {
+  const [sandboxes, environments] = await Promise.all([listSandboxes(), listEnvironments()]);
+  return listContainerViews(sandboxes, environments);
+}
+
+export async function updateContainer(
+  id: string,
+  input: UpdateContainerInput,
+): Promise<ContainerView | null> {
+  seed();
+  if (input.kind === "sandbox") {
+    const sb = store.sandboxes.get(id);
+    if (!sb) return null;
+    const { settings, policyYaml } = applyContainerUpdate(sb, input);
+    sb.settings = settings;
+    sb.policyYaml = policyYaml;
+    if (input.settings?.runtimeMode === "minios") {
+      appendLog(sb, "info", `Expanded to minified OS (${settings.miniosBaseId}). Desktop bottle provisioned.`);
+    } else if (input.settings?.runtimeMode === "headless") {
+      appendLog(sb, "info", "Collapsed to headless container mode.");
+    }
+    if (input.settings?.safetyProfile || input.settings?.networkEgress) {
+      appendLog(sb, "info", "Safety and network policy hot-reloaded.");
+    }
+    return listContainerViews([sb], []).find((c) => c.id === id) ?? null;
+  }
+  const env = store.environments.get(id);
+  if (!env) return null;
+  const { settings, policyYaml } = applyContainerUpdate(env, input);
+  env.settings = settings;
+  env.policyYaml = policyYaml;
+  if (input.settings?.runtimeMode === "minios") {
+    appendLog(env, "info", `Expanded to minified OS (${settings.miniosBaseId}).`);
+  } else if (input.settings?.runtimeMode === "headless") {
+    appendLog(env, "info", "Collapsed to headless container mode.");
+  }
+  if (input.settings?.safetyProfile || input.settings?.networkEgress) {
+    appendLog(env, "info", "Safety and network policy hot-reloaded.");
+  }
+  return listContainerViews([], [env]).find((c) => c.id === id) ?? null;
+}

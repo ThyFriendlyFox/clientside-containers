@@ -16,8 +16,10 @@ import {
   listEnvironments,
   listProviders,
   listSandboxes,
+  listContainers,
   setEnvironmentAutostart,
   setPolicy,
+  updateContainer,
 } from "./gateway";
 import { buildBundle, buildZip, envSlug } from "./export";
 
@@ -57,6 +59,18 @@ export async function handleDemoRequest(
 
   // /api/meta
   if (rest[0] === "meta") return json({ mode: "simulation", gatewayUrl: null });
+
+  // /api/containers...
+  if (rest[0] === "containers") {
+    const id = rest[1];
+    if (!id) {
+      if (m === "GET") return json(await listContainers());
+    } else if (m === "PATCH") {
+      const body = (await readBody(init)) as { kind?: string; settings?: unknown; policyYaml?: string };
+      const view = await updateContainer(id, body as never);
+      return view ? json(view) : notFound();
+    }
+  }
 
   // /api/sandboxes...
   if (rest[0] === "sandboxes") {

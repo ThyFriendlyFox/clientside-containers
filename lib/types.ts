@@ -55,6 +55,43 @@ export interface Sandbox {
   createdAt: string;
   policyYaml: string;
   logs: LogEntry[];
+  settings: ContainerSettings;
+}
+
+// --- Container settings (shared by sandboxes & environments) ---------------
+
+export type RuntimeMode = "headless" | "minios";
+
+export type NetworkEgress = "minimal" | "restricted" | "custom";
+
+export type SafetyProfile = "strict" | "balanced" | "permissive";
+
+export interface ContainerSettings {
+  runtimeMode: RuntimeMode;
+  /** OS base used when runtimeMode is minios (ubuntu-desktop, fedora-desktop, windows, …). */
+  miniosBaseId: string;
+  networkEgress: NetworkEgress;
+  safetyProfile: SafetyProfile;
+  allowInferenceRouting: boolean;
+}
+
+export type ContainerKind = "sandbox" | "environment";
+
+/** Unified view for the running-containers grid. */
+export interface ContainerView {
+  id: string;
+  kind: ContainerKind;
+  name: string;
+  status: SandboxStatus;
+  driver: ComputeDriver;
+  createdAt: string;
+  settings: ContainerSettings;
+  policyYaml: string;
+  /** Short subtitle (agent name, app list, template, …). */
+  subtitle: string;
+  /** Desktop URL when minios mode and base exposes a GUI. */
+  desktopUrl: string | null;
+  detailHref: string;
 }
 
 // --- Environments: the heavier, OS-flavored tier ---------------------------
@@ -102,6 +139,7 @@ export interface Environment {
   autostart: boolean;
   createdAt: string;
   logs: LogEntry[];
+  settings: ContainerSettings;
 }
 
 export type Verdict = "allow" | "route" | "deny";
