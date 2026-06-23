@@ -103,7 +103,7 @@ export function EnvironmentManager() {
               <div key={env.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <Link href={`/console/environments/${env.id}`} className="truncate font-medium text-white hover:text-nv-green">
+                    <Link href={`/console/environments/view?id=${env.id}`} className="truncate font-medium text-white hover:text-nv-green">
                       {env.name}
                     </Link>
                     <span className="font-mono text-xs text-zinc-500">{env.id}</span>

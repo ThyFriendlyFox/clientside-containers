@@ -1,21 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { listSandboxes, listProviders, listEnvironments, MODE } from "@/lib/gateway";
-import { AGENTS } from "@/lib/types";
+import { AGENTS, type Environment, type Provider, type Sandbox } from "@/lib/types";
 import { StatusBadge } from "@/components/badges";
 
-export const dynamic = "force-dynamic";
+export default function OverviewPage() {
+  const [sandboxes, setSandboxes] = useState<Sandbox[]>([]);
+  const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [mode, setMode] = useState("…");
 
-export default async function OverviewPage() {
-  const [sandboxes, environments, providers] = await Promise.all([
-    listSandboxes(),
-    listEnvironments(),
-    listProviders(),
-  ]);
+  useEffect(() => {
+    (async () => {
+      const [s, e, p, m] = await Promise.all([
+        fetch("/api/sandboxes").then((r) => r.json()),
+        fetch("/api/environments").then((r) => r.json()),
+        fetch("/api/providers").then((r) => r.json()),
+        fetch("/api/meta").then((r) => r.json()),
+      ]);
+      setSandboxes(s);
+      setEnvironments(e);
+      setProviders(p);
+      setMode(m.mode);
+    })().catch(() => {});
+  }, []);
+
   const stats = [
     { label: "Sandboxes", value: sandboxes.length },
     { label: "Environments", value: environments.length },
     { label: "Providers", value: providers.length },
-    { label: "Backend mode", value: MODE },
+    { label: "Backend mode", value: mode },
   ];
 
   return (
@@ -56,7 +71,7 @@ export default async function OverviewPage() {
           {sandboxes.slice(0, 5).map((s) => (
             <Link
               key={s.id}
-              href={`/console/sandboxes/${s.id}`}
+              href={`/console/sandboxes/view?id=${s.id}`}
               className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-ink-800/50"
             >
               <div className="flex items-center gap-3">
@@ -93,7 +108,7 @@ export default async function OverviewPage() {
           {environments.slice(0, 5).map((env) => (
             <Link
               key={env.id}
-              href={`/console/environments/${env.id}`}
+              href={`/console/environments/view?id=${env.id}`}
               className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-ink-800/50"
             >
               <div className="flex items-center gap-3">
