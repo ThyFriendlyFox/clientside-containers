@@ -148,11 +148,20 @@ export function EnvironmentManager() {
           <div>
             <label className="label">OS base</label>
             <select className="input" value={baseId} onChange={(e) => setBaseId(e.target.value)}>
-              {OS_BASES.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.label}
-                </option>
-              ))}
+              <optgroup label="Desktop">
+                {OS_BASES.filter((b) => b.family === "desktop").map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Mobile">
+                {OS_BASES.filter((b) => b.family === "mobile").map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.label}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             <p className="mt-1.5 text-xs text-zinc-500">{OS_BASES.find((b) => b.id === baseId)?.note}</p>
           </div>

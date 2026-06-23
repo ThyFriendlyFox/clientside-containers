@@ -25,12 +25,19 @@ decisions in real time.
 
 The **Environments** tab builds the heavier, "simulate an OS" experience:
 
-- Pick an **OS base** — Windows (KVM, via `dockurr/windows`), an Ubuntu/Fedora
-  XFCE desktop (KasmVNC), or headless.
+- Pick an **OS base**:
+  - **Desktop** — Windows (KVM, via `dockurr/windows`), an Ubuntu/Fedora XFCE
+    desktop (KasmVNC), or headless.
+  - **Mobile** — Android via [Redroid](https://github.com/remote-android/redroid-doc)
+    (Android-in-a-container over ADB) or a full Android emulator with a web screen
+    view and Appium ([`budtmo/docker-android`](https://github.com/budtmo/docker-android)).
+    iOS is offered as an **external macOS runner** target (iOS cannot run in a Linux
+    container, so it drives a macOS host over Appium/WebDriverAgent).
 - Add **apps & services** from the catalog (n8n, a Chrome CDP endpoint,
-  Playwright, VS Code, PostgreSQL, …). Templates wire common combinations so that,
-  for example, **n8n drives Chrome through Playwright** over the internal network
-  out of the box.
+  Playwright, VS Code, PostgreSQL, Appium, ws-scrcpy, …). Templates wire common
+  combinations so that, for example, **n8n drives Chrome through Playwright**, or
+  **Appium tests an app on the Android emulator**, over the internal network out
+  of the box.
 - **Export** the environment as a `.zip` bundle containing a `docker-compose.yml`,
   the OpenShell policy, start/stop scripts, and autostart units for systemd,
   launchd, and Windows Task Scheduler.

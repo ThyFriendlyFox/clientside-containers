@@ -27,8 +27,8 @@ const FEATURES = [
     body: "Launch OpenClaw, Hermes, or LangChain Deep Agents Code through the NemoClaw reference stack.",
   },
   {
-    title: "OS-flavored environments",
-    body: "A heavier tier with a full desktop and preinstalled apps — wire up n8n, a Chrome CDP endpoint, and Playwright in one click.",
+    title: "Desktop & mobile environments",
+    body: "A heavier tier with full desktops (Windows, Ubuntu) and mobile OSes (Android via Redroid or an emulator) — wire up n8n, Chrome, Playwright, or Appium app testing in one click.",
   },
   {
     title: "Export & run on the desktop",
