@@ -14,24 +14,49 @@ decisions in real time.
 | Area | Description |
 | --- | --- |
 | **Sandbox lifecycle** | Create, inspect, and terminate isolated sandboxes across the `docker`, `podman`, `microvm`, and `kubernetes` compute drivers. |
+| **Environments** | A heavier, OS-flavored tier (much like Bottles): a full desktop base plus preinstalled apps/services — e.g. n8n wired to a Chrome CDP endpoint via Playwright. |
+| **Export & desktop** | Export an environment as a runnable Compose bundle with autostart units, or run it from the NemoClaw Desktop companion app that starts it on boot. |
 | **Network policy** | Edit declarative OpenShell policy YAML and hot-reload the network/inference sections on a running sandbox. |
 | **Egress engine** | Probe an outbound request (binary, host, port, method) and see the policy verdict, mirroring OpenShell's three-way decision. |
 | **Routed inference** | Route model traffic through the privacy router to a managed backend instead of caller credentials. |
 | **Providers** | Register named credential bundles that are injected into sandboxes at creation. |
+
+## Environments and the desktop app
+
+The **Environments** tab builds the heavier, "simulate an OS" experience:
+
+- Pick an **OS base** — Windows (KVM, via `dockurr/windows`), an Ubuntu/Fedora
+  XFCE desktop (KasmVNC), or headless.
+- Add **apps & services** from the catalog (n8n, a Chrome CDP endpoint,
+  Playwright, VS Code, PostgreSQL, …). Templates wire common combinations so that,
+  for example, **n8n drives Chrome through Playwright** over the internal network
+  out of the box.
+- **Export** the environment as a `.zip` bundle containing a `docker-compose.yml`,
+  the OpenShell policy, start/stop scripts, and autostart units for systemd,
+  launchd, and Windows Task Scheduler.
+
+The **NemoClaw Desktop** companion app (in [`desktop/`](./desktop)) runs those
+bundles on the user's machine via Docker and registers a login item so flagged
+environments start on boot — taking the environment off the browser and onto the
+desktop. See [`desktop/README.md`](./desktop/README.md).
 
 ## Architecture
 
 ```
 app/                Next.js App Router (UI pages + API route handlers)
   page.tsx          Landing page
-  console/          Authenticated console (overview, sandboxes, policies, providers)
+  console/          Console (overview, sandboxes, environments, policies, providers, desktop)
   api/              REST endpoints backing the console
 components/         React UI components
 lib/
   gateway.ts        Backend adapter (simulation or real OpenShell gateway)
   policy.ts         Policy model, presets, and the egress decision engine
+  environments.ts   OS bases, app catalog, and environment templates
+  compose.ts        docker-compose generator (desktop + n8n + Chrome CDP wiring)
+  export.ts         Export bundle generator (scripts + autostart units + zip)
   store.ts          In-memory store used in simulation mode
   types.ts          Shared domain types
+desktop/            Electron companion app: run bundles locally, start on boot
 ```
 
 The console talks to a **backend adapter** (`lib/gateway.ts`) that runs in one of
