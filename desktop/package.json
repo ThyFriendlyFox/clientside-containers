@@ -1,0 +1,24 @@
+{
+  "name": "nemoclaw-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop companion that runs exported NemoClaw environments locally and starts them on boot.",
+  "license": "GPL-3.0-only",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.nemoclaw.desktop",
+    "productName": "NemoClaw Desktop",
+    "files": ["main.js", "preload.js", "renderer/**/*"],
+    "mac": { "category": "public.app-category.developer-tools" },
+    "linux": { "target": ["AppImage"], "category": "Development" },
+    "win": { "target": ["nsis"] }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
