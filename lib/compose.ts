@@ -1,5 +1,6 @@
 import yaml from "js-yaml";
 import type { Environment } from "./types";
+import { desktopAppsIn } from "./desktop-apps";
 import { getBase } from "./environments";
 
 // Generates a docker-compose project for an environment. The compose file is
@@ -33,6 +34,29 @@ export interface ComposeProject {
 }
 
 const NETWORK = "envnet";
+
+/** Install desktop programs into a webtop bottle via linuxserver mods + init scripts. */
+function applyDesktopPrograms(desktop: ComposeService, env: Environment): void {
+  const apps = desktopAppsIn(env.apps);
+  if (apps.length === 0) return;
+
+  const pkgs = [...new Set(apps.flatMap((a) => a.packages))];
+  const envVars = { ...(desktop.environment ?? {}) };
+  const mods = envVars.DOCKER_MODS;
+  envVars.DOCKER_MODS = mods
+    ? `${mods}|linuxserver/mods:universal-package-install`
+    : "linuxserver/mods:universal-package-install";
+  const existing = envVars.INSTALL_PACKAGES;
+  envVars.INSTALL_PACKAGES = existing ? `${existing}|${pkgs.join("|")}` : pkgs.join("|");
+  desktop.environment = envVars;
+
+  // Init scripts in bottle-init/ register autostart entries inside the persistent bottle.
+  const vols = desktop.volumes ?? ["desktop_data:/config"];
+  if (!vols.includes("./bottle-init:/config/custom-cont-init.d:ro")) {
+    vols.push("./bottle-init:/config/custom-cont-init.d:ro");
+  }
+  desktop.volumes = vols;
+}
 
 export function buildComposeProject(env: Environment): ComposeProject {
   const base = getBase(env.baseId);
@@ -92,7 +116,7 @@ export function buildComposeProject(env: Environment): ComposeProject {
       networks: [NETWORK],
       cpus,
       mem_limit: mem,
-      volumes: ["desktop_data:/storage"],
+      volumes: ["desktop_data:/config"],
     };
     if (base.id === "windows") {
       desktop.environment = {
@@ -110,6 +134,7 @@ export function buildComposeProject(env: Environment): ComposeProject {
     }
     services.desktop = desktop;
     volumes.desktop_data = {};
+    applyDesktopPrograms(desktop, env);
   }
 
   const hasChrome = env.apps.includes("chrome");
@@ -203,22 +228,6 @@ export function buildComposeProject(env: Environment): ComposeProject {
     volumes.pg_data = {};
   }
 
-  // OpenTTD dedicated server (open source transport simulation game).
-  if (env.apps.includes("openttd")) {
-    services.openttd = {
-      image: "ghcr.io/ropenttd/openttd:latest",
-      container_name: "openttd",
-      restart: "unless-stopped",
-      networks: [NETWORK],
-      ports: ["3979:3979/tcp", "3979:3979/udp"],
-      environment: { loadgame: "false", PUID: "1000", PGID: "1000" },
-      volumes: ["openttd_data:/config"],
-      cpus,
-      mem_limit: mem,
-    };
-    volumes.openttd_data = {};
-  }
-
   // Browser-based Android screen view (ws-scrcpy), attaches to the device over ADB.
   if (env.apps.includes("scrcpy-web") && base.family === "mobile" && base.id !== "ios-external") {
     services["scrcpy-web"] = {
@@ -308,11 +317,16 @@ export function environmentEndpoints(env: Environment): { label: string; url: st
   }
 
   if (base.desktop !== "none") {
-    endpoints.push({ label: `${base.label} desktop`, url: `http://localhost:${base.guiPort}` });
+    endpoints.push({ label: "Desktop bottle", url: `http://localhost:${base.guiPort}` });
+    for (const app of desktopAppsIn(env.apps)) {
+      endpoints.push({
+        label: app.label,
+        url: app.autostart ? `autostarts on the desktop` : `launch from the desktop menu`,
+      });
+    }
   }
   if (env.apps.includes("n8n")) endpoints.push({ label: "n8n editor", url: "http://localhost:5678" });
   if (env.apps.includes("chrome")) endpoints.push({ label: "Chrome CDP", url: "ws://localhost:3000" });
   if (env.apps.includes("vscode")) endpoints.push({ label: "VS Code", url: "http://localhost:8443" });
-  if (env.apps.includes("openttd")) endpoints.push({ label: "OpenTTD server", url: "localhost:3979 (Multiplayer → Add Server)" });
   return endpoints;
 }

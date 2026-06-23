@@ -89,7 +89,7 @@ export const APP_CATALOG: AppSpec[] = [
   { id: "firefox", label: "Firefox", kind: "desktop-app", category: "browser" },
   { id: "appium", label: "Appium (mobile automation)", kind: "service", category: "mobile" },
   { id: "scrcpy-web", label: "scrcpy (web Android view)", kind: "service", category: "mobile" },
-  { id: "openttd", label: "OpenTTD (game server)", kind: "service", category: "game" },
+  { id: "openttd", label: "OpenTTD (desktop game)", kind: "desktop-app", category: "game" },
 ];
 
 export interface EnvTemplate {
@@ -175,16 +175,16 @@ export const ENV_TEMPLATES: EnvTemplate[] = [
       "Redroid runs Android and exposes ADB on 5555. ws-scrcpy streams the screen to the browser; Appium connects over ADB for automation.",
   },
   {
-    id: "openttd",
-    label: "OpenTTD (one-click game server)",
+    id: "play-openttd",
+    label: "Play OpenTTD (desktop bottle)",
     description:
-      "A one-click OpenTTD dedicated server. A good smoke test of the catalog → compose → export pipeline: launch it, then connect an OpenTTD client to play.",
-    baseId: "headless",
+      "A mini Ubuntu desktop in a container with OpenTTD installed — like a Bottles prefix, but a full Linux bottle. Open the desktop in your browser and play.",
+    baseId: "ubuntu-desktop",
     apps: ["openttd"],
-    resources: { cpus: 1, memoryMb: 1024, diskGb: 4 },
+    resources: { cpus: 2, memoryMb: 4096, diskGb: 16 },
     presetId: null,
     wiring:
-      "Runs the OpenTTD dedicated server on port 3979 (TCP/UDP). Connect from an OpenTTD client via Multiplayer → Add Server using <host>:3979. Saves and config persist in the openttd_data volume.",
+      "Provisions an Ubuntu XFCE bottle (linuxserver/webtop) streamed over KasmVNC. OpenTTD is installed into the desktop and set to autostart. Open the desktop URL, wait for the game window, and play. Saves live in the bottle's persistent /config volume.",
   },
   {
     id: "ios-appium",

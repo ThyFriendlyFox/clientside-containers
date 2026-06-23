@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import type { Environment } from "./types";
+import { desktopAppsIn } from "./desktop-apps";
 import { composeToYaml, environmentEndpoints } from "./compose";
 import { getBase, getTemplate } from "./environments";
 
@@ -151,6 +152,42 @@ openshell policy set ${slug} --policy openshell-policy.yaml --wait
 `;
 }
 
+function bottleInitFiles(env: Environment): BundleFile[] {
+  const apps = desktopAppsIn(env.apps);
+  if (apps.length === 0) return [];
+
+  const lines = [
+    "#!/usr/bin/with-contenv bash",
+    "# Register desktop programs inside this bottle (linuxserver/webtop custom-cont-init.d).",
+    "set -e",
+    "mkdir -p /config/.config/autostart",
+    "",
+  ];
+
+  for (const app of apps) {
+    if (app.autostart) {
+      lines.push(
+        `cat > /config/.config/autostart/${app.id}.desktop << 'EOF'`,
+        "[Desktop Entry]",
+        "Type=Application",
+        `Name=${app.label}`,
+        `Exec=${app.exec}`,
+        "X-GNOME-Autostart-enabled=true",
+        "EOF",
+        "",
+      );
+    }
+  }
+
+  return [
+    {
+      path: "bottle-init/99-programs.sh",
+      content: lines.join("\n"),
+      executable: true,
+    },
+  ];
+}
+
 function manifest(env: Environment, slug: string): string {
   return JSON.stringify(
     {
@@ -181,6 +218,7 @@ export function buildBundle(env: Environment): BundleFile[] {
     { path: `autostart/nemoclaw-${slug}.service`, content: systemdUnit(slug) },
     { path: `autostart/com.nemoclaw.${slug}.plist`, content: launchdPlist(slug) },
     { path: "autostart/Install-Autostart.ps1", content: windowsAutostartPs1(slug) },
+    ...bottleInitFiles(env),
   ];
 }
 
