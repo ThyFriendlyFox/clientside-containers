@@ -5,6 +5,7 @@ import { initClientsideStore } from "@/lib/clientside-store";
 import { hydrateBrowserRuntime, runtimeCapabilities } from "@/lib/browser-runtime";
 import { store } from "@/lib/store";
 import { listSandboxes, listEnvironments } from "@/lib/gateway";
+import { BASE_PATH } from "@/lib/base-path";
 
 export interface ClientsideContextValue {
   ready: boolean;
@@ -75,8 +76,7 @@ async function registerCoiServiceWorker(): Promise<void> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
   if (window.crossOriginIsolated) return;
   try {
-    const base = process.env.PAGES_BASE_PATH ?? "";
-    await navigator.serviceWorker.register(`${base}/coi-serviceworker.js`);
+    await navigator.serviceWorker.register(`${BASE_PATH}/coi-serviceworker.js`);
   } catch {
     // COI SW is optional — workers still run without it.
   }

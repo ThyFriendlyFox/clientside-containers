@@ -1,5 +1,7 @@
 "use client";
 
+import { BASE_PATH } from "@/lib/base-path";
+
 interface Props {
   containerId: string;
   name: string;
@@ -7,8 +9,7 @@ interface Props {
 }
 
 export function DesktopBottleFrame({ containerId, name, className }: Props) {
-  const base = process.env.PAGES_BASE_PATH ?? "";
-  const src = `${base}/console/runtime/desktop/?id=${encodeURIComponent(containerId)}`;
+  const src = `${BASE_PATH}/console/runtime/desktop/?id=${encodeURIComponent(containerId)}`;
 
   return (
     <iframe

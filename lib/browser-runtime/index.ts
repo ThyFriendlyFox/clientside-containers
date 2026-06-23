@@ -2,6 +2,7 @@ import type { Environment, Sandbox } from "../types";
 import { appendLog } from "../store";
 import { getBase } from "../environments";
 import { desktopAppsIn } from "../desktop-apps";
+import { BASE_PATH } from "../base-path";
 
 export type RuntimeKind = "worker" | "webcontainer" | "desktop-frame";
 
@@ -15,9 +16,10 @@ export interface RuntimeInstance {
 
 const instances = new Map<string, RuntimeInstance>();
 
+// Path used as a next/link href — the framework applies the base path, so this
+// returns the route without it to avoid double-prefixing.
 export function runtimeDesktopPath(id: string): string {
-  const base = process.env.PAGES_BASE_PATH ?? "";
-  return `${base}/console/runtime/desktop/?id=${encodeURIComponent(id)}`;
+  return `/console/runtime/desktop/?id=${encodeURIComponent(id)}`;
 }
 
 export function getRuntime(id: string): RuntimeInstance | undefined {
@@ -29,8 +31,7 @@ export function listRuntimes(): RuntimeInstance[] {
 }
 
 function workerUrl(): string {
-  const base = process.env.PAGES_BASE_PATH ?? "";
-  return `${base}/workers/sandbox-worker.js`;
+  return `${BASE_PATH}/workers/sandbox-worker.js`;
 }
 
 async function startWorkerSandbox(sandbox: Sandbox): Promise<RuntimeInstance> {

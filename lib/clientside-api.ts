@@ -142,6 +142,3 @@ export async function handleClientsideRequest(
 
   return notFound();
 }
-
-/** @deprecated Use handleClientsideRequest */
-export const handleDemoRequest = handleClientsideRequest;

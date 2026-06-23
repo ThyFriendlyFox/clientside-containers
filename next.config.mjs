@@ -7,6 +7,9 @@ const basePath = process.env.PAGES_BASE_PATH ?? "";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Inlined into the client bundle so the browser runtime can resolve the
+  // Web Worker, COI service worker, and desktop bottle iframe under a base path.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   ...(isExport
     ? {
         output: "export",
