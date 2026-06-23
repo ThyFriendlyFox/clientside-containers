@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void;
 }
 
-const TIER_ORDER: ContainerTier[] = ["headless", "app", "minios"];
+const TIER_ORDER: ContainerTier[] = ["agent", "app", "minios"];
 
 export function NewContainerMenu({ onCreate, onClose }: Props) {
   const [appId, setAppId] = useState(BOTTLED_APPS[0].id);
@@ -22,7 +22,10 @@ export function NewContainerMenu({ onCreate, onClose }: Props) {
         aria-modal="true"
       >
         <h2 className="text-lg font-semibold text-white">New container</h2>
-        <p className="mt-1 text-sm text-zinc-400">Pick a tier. Everything runs in your browser.</p>
+        <p className="mt-1 text-sm text-zinc-400">
+          Try any AI system, app, or OS — on any device, with no host to set up. Pick a tier; bigger
+          tiers wrap more OS around the same idea.
+        </p>
 
         <div className="mt-4 space-y-3">
           {TIER_ORDER.map((tier) => (
@@ -58,6 +61,19 @@ export function NewContainerMenu({ onCreate, onClose }: Props) {
                     </option>
                   ))}
                 </select>
+              )}
+              {tier === "agent" && (
+                <p className="mt-3 text-xs text-zinc-500">
+                  Built on{" "}
+                  <a className="text-nv-green hover:underline" href="https://github.com/NVIDIA/NemoClaw" target="_blank" rel="noreferrer">
+                    NVIDIA NemoClaw
+                  </a>{" "}
+                  +{" "}
+                  <a className="text-nv-green hover:underline" href="https://github.com/NVIDIA/OpenShell" target="_blank" rel="noreferrer">
+                    OpenShell
+                  </a>
+                  . OpenShell normally needs a host plus Docker/Podman/MicroVM — here it runs in the browser.
+                </p>
               )}
             </div>
           ))}

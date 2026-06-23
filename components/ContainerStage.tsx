@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { TIERS, tierUsesEmulator, type Container } from "@/lib/container";
 import { EmulatorScreen } from "./runtime/EmulatorScreen";
-import { HeadlessConsole } from "./runtime/HeadlessConsole";
+import { AgentConsole } from "./runtime/AgentConsole";
 
 interface Props {
   container: Container;
@@ -45,13 +45,13 @@ export function ContainerStage({ container, onClose, onStatus }: Props) {
         {tierUsesEmulator(container.tier) ? (
           <EmulatorScreen container={container} onStatus={onStatus} />
         ) : (
-          <HeadlessConsole container={container} onStatus={onStatus} />
+          <AgentConsole container={container} onStatus={onStatus} />
         )}
       </div>
       <footer className="border-t border-ink-700 bg-ink-900 px-4 py-1.5 text-center text-xs text-zinc-500">
         {tierUsesEmulator(container.tier)
           ? "Real x86 Linux running in this tab via WebAssembly. Click the screen, then type."
-          : "JS runtime in a Web Worker, answering API calls in this tab."}
+          : "OpenShell-style agent runtime in a Web Worker — API calls and policy egress decisions in this tab."}
       </footer>
     </div>
   );

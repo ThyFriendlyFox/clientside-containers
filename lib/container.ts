@@ -1,9 +1,16 @@
-// The whole app is containers. Three tiers, all real and running in the browser:
-//   headless  — a JS runtime in a Web Worker that answers API calls
-//   app       — a "bottle": one program in a minified Linux, shown as a single app
-//   minios    — a full minified Linux (x86 via v86/WASM) with a shell and tools
+// The whole app is containers, sized by how much OS you need. All run in-browser:
+//   agent  — the smallest tier: an OpenShell-style, policy-governed agent
+//            runtime (the NVIDIA NemoClaw/OpenShell stack), answering API calls
+//   app    — a "bottle": one program in a minified Linux, shown as a single app
+//   minios — a full minified Linux (x86 via v86/WASM) with a shell and tools
+//
+// OpenShell normally needs a supported host plus Docker/Podman/MicroVM;
+// clientside-containers removes that barrier by running the runtime and
+// progressively larger minified OSes in the browser, on any device.
 
-export type ContainerTier = "headless" | "app" | "minios";
+import { DEFAULT_AGENT_POLICY_YAML } from "./policy";
+
+export type ContainerTier = "agent" | "app" | "minios";
 
 export type ContainerStatus = "stopped" | "booting" | "running" | "error";
 
@@ -14,6 +21,8 @@ export interface ContainerSettings {
   network: "off" | "restricted" | "open";
   /** Start automatically when the dashboard loads. */
   autostart: boolean;
+  /** OpenShell-style policy (agent tier). YAML text. */
+  policyYaml?: string;
 }
 
 export interface Container {
@@ -31,11 +40,12 @@ export const TIERS: Record<
   ContainerTier,
   { label: string; blurb: string; defaultMemoryMb: number; icon: string }
 > = {
-  headless: {
-    label: "Headless",
-    blurb: "A JS runtime in a Web Worker that answers API calls. No display.",
+  agent: {
+    label: "Agent sandbox",
+    blurb:
+      "The OpenShell runtime for autonomous agents — answers API calls, governed by a declarative YAML policy. The smallest tier.",
     defaultMemoryMb: 64,
-    icon: "M5 7h14M5 12h14M5 17h10",
+    icon: "M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z",
   },
   app: {
     label: "App bottle",
@@ -92,7 +102,12 @@ export function getBottledApp(id: string | undefined): BottledApp {
 }
 
 export const DEFAULT_SETTINGS: Record<ContainerTier, ContainerSettings> = {
-  headless: { memoryMb: 64, network: "restricted", autostart: false },
+  agent: {
+    memoryMb: 64,
+    network: "restricted",
+    autostart: false,
+    policyYaml: DEFAULT_AGENT_POLICY_YAML,
+  },
   app: { memoryMb: 192, network: "restricted", autostart: false },
   minios: { memoryMb: 256, network: "restricted", autostart: false },
 };

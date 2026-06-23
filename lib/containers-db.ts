@@ -50,9 +50,9 @@ async function seedIfEmpty(db: IDBPDatabase<CscDb>): Promise<void> {
   if (await db.get("meta", "seeded")) return;
   await db.put("meta", true, "seeded");
   const seeds: Container[] = [
-    makeContainer("minios", "linux-1"),
+    makeContainer("agent", "agent-1"),
     makeContainer("app", "shell-1", "shell"),
-    makeContainer("headless", "agent-1"),
+    makeContainer("minios", "linux-1"),
   ];
   const tx = db.transaction("containers", "readwrite");
   await Promise.all(seeds.map((c) => tx.store.put(c, c.id)));
