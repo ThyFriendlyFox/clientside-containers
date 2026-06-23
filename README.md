@@ -1,4 +1,4 @@
-# NemoClaw Console
+# Clientside-Containers
 
 A web console for running AI agents inside sandboxes, built on top of the
 [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw) reference stack and the
