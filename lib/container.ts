@@ -119,3 +119,23 @@ export function newId(prefix = "ctr"): string {
 export function tierUsesEmulator(tier: ContainerTier): boolean {
   return tier === "app" || tier === "minios";
 }
+
+const TIER_PREFIX: Record<ContainerTier, string> = {
+  agent: "agent",
+  app: "app",
+  minios: "linux",
+};
+
+/** Pure factory — build a Container without touching storage. */
+export function buildContainer(tier: ContainerTier, appId?: string, name?: string): Container {
+  const prefix = tier === "app" ? appId ?? TIER_PREFIX.app : TIER_PREFIX[tier];
+  return {
+    id: newId(),
+    name: name?.trim() || `${prefix}-${Math.random().toString(36).slice(2, 5)}`,
+    tier,
+    appId: tier === "app" ? appId ?? "shell" : undefined,
+    status: "stopped",
+    createdAt: new Date().toISOString(),
+    settings: { ...DEFAULT_SETTINGS[tier] },
+  };
+}
