@@ -82,7 +82,7 @@ export function SandboxManager() {
               <div key={s.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <Link href={`/console/sandboxes/${s.id}`} className="truncate font-medium text-white hover:text-nv-green">
+                    <Link href={`/console/sandboxes/view?id=${s.id}`} className="truncate font-medium text-white hover:text-nv-green">
                       {s.name}
                     </Link>
                     <span className="font-mono text-xs text-zinc-500">{s.id}</span>

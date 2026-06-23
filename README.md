@@ -9,6 +9,22 @@ launch agents (OpenClaw, Hermes, LangChain Deep Agents Code), author OpenShell
 network policy, and watch the layer-7 egress engine make **allow / route / deny**
 decisions in real time.
 
+## Live demo
+
+A fully interactive demo is published to GitHub Pages:
+**https://thyfriendlyfox.github.io/clientside-containers/**
+
+The demo is a static export that runs the simulation backend entirely in the
+browser — every `/api/*` call is served client-side (see
+`components/DemoBridge.tsx`), so sandboxes, environments, policy editing, the
+egress checker, and bundle export all work with no server. It is deployed by the
+[`Deploy demo to GitHub Pages`](.github/workflows/deploy-demo.yml) workflow on
+every push to `main`.
+
+> **Enabling Pages (one time):** in the repository, go to **Settings → Pages**
+> and set **Source** to **GitHub Actions**. The next push to `main` (or a manual
+> run of the workflow) will publish the demo.
+
 ## What it does
 
 | Area | Description |

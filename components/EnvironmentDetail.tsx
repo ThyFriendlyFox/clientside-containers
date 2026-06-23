@@ -37,6 +37,20 @@ export function EnvironmentDetail({ id }: { id: string }) {
     load();
   }, [load]);
 
+  async function downloadBundle() {
+    const res = await fetch(`/api/environments/${id}/export`);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `nemoclaw-${env?.name ?? id}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   async function toggleAutostart(next: boolean) {
     const res = await fetch(`/api/environments/${id}`, {
       method: "PATCH",
@@ -99,9 +113,9 @@ export function EnvironmentDetail({ id }: { id: string }) {
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-white">Export &amp; run locally</h2>
-          <a href={`/api/environments/${id}/export`} className="btn-primary">
+          <button onClick={downloadBundle} className="btn-primary">
             Download bundle (.zip)
-          </a>
+          </button>
         </div>
         <p className="mt-2 text-sm text-zinc-400">
           The bundle contains a Compose project, the OpenShell policy, start/stop scripts, and
