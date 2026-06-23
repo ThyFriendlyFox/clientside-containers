@@ -7,13 +7,13 @@ import { ContainerStage } from "./ContainerStage";
 import { SettingsModal } from "./SettingsModal";
 import { NewContainerMenu } from "./NewContainerMenu";
 import {
-  createContainer,
   deleteContainer,
   listContainers,
+  persistContainer,
   setStatus,
   updateSettings,
 } from "@/lib/containers-db";
-import { newId, type Container, type ContainerSettings, type ContainerTier } from "@/lib/container";
+import { buildContainer, type Container, type ContainerSettings, type ContainerTier } from "@/lib/container";
 
 export function Dashboard() {
   const [containers, setContainers] = useState<Container[]>([]);
@@ -28,7 +28,14 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    refresh().catch(() => setLoading(false));
+    const timeout = setTimeout(() => setLoading(false), 4000);
+    refresh()
+      .catch((err) => console.error("load failed", err))
+      .finally(() => {
+        clearTimeout(timeout);
+        setLoading(false);
+      });
+    return () => clearTimeout(timeout);
   }, [refresh]);
 
   const open = containers.find((c) => c.id === openId) ?? null;
@@ -38,25 +45,33 @@ export function Dashboard() {
     setContainers((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }
 
-  async function handleCreate(tier: ContainerTier, appId?: string) {
-    const prefix = tier === "minios" ? "linux" : tier === "app" ? appId ?? "app" : "agent";
-    const created = await createContainer(tier, `${prefix}-${newId("").slice(1, 4)}`, appId);
+  // Create is optimistic: the container appears and opens immediately; we
+  // persist to IndexedDB in the background so storage latency never blocks UI.
+  function handleCreate(tier: ContainerTier, appId?: string) {
+    const created = buildContainer(tier, appId);
     setCreating(false);
     setContainers((prev) => [...prev, created]);
     setOpenId(created.id);
+    persistContainer(created).catch((err) => console.error("persist failed", err));
   }
 
-  async function handleSaveSettings(id: string, name: string, next: Partial<ContainerSettings>) {
-    const updated = await updateSettings(id, next, name);
-    if (updated) patchLocal(id, { name: updated.name, settings: updated.settings });
+  function handleSaveSettings(id: string, name: string, next: Partial<ContainerSettings>) {
+    setContainers((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, name: name.trim() || c.name, settings: { ...c.settings, ...next } }
+          : c,
+      ),
+    );
     setSettingsId(null);
+    updateSettings(id, next, name).catch((err) => console.error("save failed", err));
   }
 
-  async function handleDelete(id: string) {
-    await deleteContainer(id);
+  function handleDelete(id: string) {
     setContainers((prev) => prev.filter((c) => c.id !== id));
     setSettingsId(null);
     if (openId === id) setOpenId(null);
+    deleteContainer(id).catch((err) => console.error("delete failed", err));
   }
 
   function handleStatus(id: string, status: Container["status"]) {

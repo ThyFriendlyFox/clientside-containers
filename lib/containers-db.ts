@@ -1,7 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import {
-  DEFAULT_SETTINGS,
-  newId,
+  buildContainer,
   type Container,
   type ContainerSettings,
   type ContainerTier,
@@ -20,39 +19,44 @@ let dbPromise: Promise<IDBPDatabase<CscDb>> | null = null;
 function getDb(): Promise<IDBPDatabase<CscDb>> {
   if (!dbPromise) {
     dbPromise = openDB<CscDb>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
-        // Drop pre-2.0 stores from the previous architecture if present.
+      upgrade(db) {
+        // Start from a clean schema: the pre-2.0 architecture stored unrelated
+        // sandbox/environment data and a `seeded` flag that would suppress the
+        // new default containers. Drop everything and recreate.
         for (const name of Array.from(db.objectStoreNames)) {
-          if (name !== "containers" && name !== "meta") db.deleteObjectStore(name);
+          db.deleteObjectStore(name);
         }
-        if (!db.objectStoreNames.contains("containers")) db.createObjectStore("containers");
-        if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
-        void oldVersion;
+        db.createObjectStore("containers");
+        db.createObjectStore("meta");
       },
+      // Another tab holds an older-version connection open: ask it to close so
+      // our upgrade isn't blocked indefinitely.
+      blocked() {
+        console.warn("clientside-containers: IndexedDB upgrade blocked by another tab");
+      },
+      blocking() {
+        void dbPromise?.then((db) => db.close()).catch(() => {});
+        dbPromise = null;
+      },
+      terminated() {
+        dbPromise = null;
+      },
+    }).catch((err) => {
+      // Don't cache a rejected promise — let the next call retry.
+      dbPromise = null;
+      throw err;
     });
   }
   return dbPromise;
-}
-
-function makeContainer(tier: ContainerTier, name: string, appId?: string): Container {
-  return {
-    id: newId(),
-    name,
-    tier,
-    appId: tier === "app" ? appId ?? "shell" : undefined,
-    status: "stopped",
-    createdAt: new Date().toISOString(),
-    settings: { ...DEFAULT_SETTINGS[tier] },
-  };
 }
 
 async function seedIfEmpty(db: IDBPDatabase<CscDb>): Promise<void> {
   if (await db.get("meta", "seeded")) return;
   await db.put("meta", true, "seeded");
   const seeds: Container[] = [
-    makeContainer("agent", "agent-1"),
-    makeContainer("app", "shell-1", "shell"),
-    makeContainer("minios", "linux-1"),
+    buildContainer("agent", undefined, "agent-1"),
+    buildContainer("app", "shell", "shell-1"),
+    buildContainer("minios", undefined, "linux-1"),
   ];
   const tx = db.transaction("containers", "readwrite");
   await Promise.all(seeds.map((c) => tx.store.put(c, c.id)));
@@ -66,14 +70,19 @@ export async function listContainers(): Promise<Container[]> {
   return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+/** Persist an already-built container (used by the optimistic UI). */
+export async function persistContainer(container: Container): Promise<void> {
+  const db = await getDb();
+  await db.put("containers", container, container.id);
+}
+
 export async function createContainer(
   tier: ContainerTier,
-  name: string,
   appId?: string,
+  name?: string,
 ): Promise<Container> {
-  const db = await getDb();
-  const container = makeContainer(tier, name.trim() || tier, appId);
-  await db.put("containers", container, container.id);
+  const container = buildContainer(tier, appId, name);
+  await persistContainer(container);
   return container;
 }
 
