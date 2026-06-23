@@ -54,7 +54,7 @@ export const DEFAULT_POLICY: Policy = {
 
 export function policyToYaml(policy: Policy): string {
   const header =
-    "# Managed by NemoClaw Console. Static sections (filesystem, process) are\n" +
+    "# Managed by clientside-containers. Static sections (filesystem, process) are\n" +
     "# locked at sandbox creation; network and inference sections hot-reload.\n\n";
   return header + yaml.dump(policy, { lineWidth: 100, noRefs: true, sortKeys: false });
 }

@@ -1,6 +1,6 @@
 import { ProviderManager } from "@/components/ProviderManager";
 
-export const metadata = { title: "Providers · NemoClaw Console" };
+export const metadata = { title: "Providers · clientside-containers" };
 
 export default function ProvidersPage() {
   return (

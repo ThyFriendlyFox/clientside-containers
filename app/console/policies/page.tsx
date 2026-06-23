@@ -1,7 +1,7 @@
 import yaml from "js-yaml";
 import { DEFAULT_POLICY, PRESETS } from "@/lib/policy";
 
-export const metadata = { title: "Network policies · NemoClaw Console" };
+export const metadata = { title: "Network policies · clientside-containers" };
 
 const LAYERS = [
   { layer: "Filesystem", protects: "Reads/writes outside allowed paths.", when: "Locked at sandbox creation." },

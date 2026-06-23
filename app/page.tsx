@@ -88,7 +88,7 @@ export default function LandingPage() {
             A control plane for AI agents running in sandboxes.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-zinc-400">
-            NemoClaw Console is the web interface for the NemoClaw reference stack and the
+            clientside-containers is the web interface for the NemoClaw reference stack and the
             OpenShell runtime. Provision sandboxes, launch agents, edit network policy, and watch
             the L7 egress engine make allow, route, and deny decisions in real time.
           </p>

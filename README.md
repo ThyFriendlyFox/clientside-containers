@@ -1,10 +1,10 @@
 # Clientside-Containers
 
-A web console for running AI agents inside sandboxes, built on top of the
+A web app for running AI agents inside sandboxes, built on top of the
 [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw) reference stack and the
 [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) runtime.
 
-NemoClaw Console gives you a single web interface to provision agent sandboxes,
+clientside-containers gives you a single web interface to provision agent sandboxes,
 launch agents (OpenClaw, Hermes, LangChain Deep Agents Code), author OpenShell
 network policy, and watch the layer-7 egress engine make **allow / route / deny**
 decisions in real time.
@@ -31,7 +31,7 @@ every push to `main`.
 | --- | --- |
 | **Sandbox lifecycle** | Create, inspect, and terminate isolated sandboxes across the `docker`, `podman`, `microvm`, and `kubernetes` compute drivers. |
 | **Environments** | A heavier, OS-flavored tier (much like Bottles): a full desktop base plus preinstalled apps/services — e.g. n8n wired to a Chrome CDP endpoint via Playwright. |
-| **Export & desktop** | Export an environment as a runnable Compose bundle with autostart units, or run it from the NemoClaw Desktop companion app that starts it on boot. |
+| **Export & desktop** | Export an environment as a runnable Compose bundle with autostart units, or run it from the clientside-containers Desktop companion app that starts it on boot. |
 | **Network policy** | Edit declarative OpenShell policy YAML and hot-reload the network/inference sections on a running sandbox. |
 | **Egress engine** | Probe an outbound request (binary, host, port, method) and see the policy verdict, mirroring OpenShell's three-way decision. |
 | **Routed inference** | Route model traffic through the privacy router to a managed backend instead of caller credentials. |
@@ -59,7 +59,7 @@ The **Environments** tab builds the heavier, "simulate an OS" experience:
   the OpenShell policy, start/stop scripts, and autostart units for systemd,
   launchd, and Windows Task Scheduler.
 
-The **NemoClaw Desktop** companion app (in [`desktop/`](./desktop)) runs those
+The **clientside-containers Desktop** companion app (in [`desktop/`](./desktop)) runs those
 bundles on the user's machine via Docker and registers a login item so flagged
 environments start on boot — taking the environment off the browser and onto the
 desktop. See [`desktop/README.md`](./desktop/README.md).
@@ -123,7 +123,7 @@ npm run start
 
 See [`.env.example`](./.env.example). Key variables:
 
-- `NEMOCLAW_CONSOLE_MODE` — `simulation` (default) or `gateway`.
+- `CSC_MODE` — `simulation` (default) or `gateway`.
 - `OPENSHELL_GATEWAY_URL` — base URL of a running OpenShell gateway (gateway mode).
 - `OPENSHELL_GATEWAY_TOKEN` — optional bearer token for the gateway.
 

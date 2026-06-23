@@ -1,8 +1,8 @@
 {
-  "name": "nemoclaw-desktop",
+  "name": "clientside-containers-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Desktop companion that runs exported NemoClaw environments locally and starts them on boot.",
+  "description": "Desktop companion that runs exported clientside-containers environments locally and starts them on boot.",
   "license": "GPL-3.0-only",
   "main": "main.js",
   "scripts": {
@@ -10,8 +10,8 @@
     "dist": "electron-builder"
   },
   "build": {
-    "appId": "com.nemoclaw.desktop",
-    "productName": "NemoClaw Desktop",
+    "appId": "com.clientside-containers.desktop",
+    "productName": "clientside-containers Desktop",
     "files": ["main.js", "preload.js", "renderer/**/*"],
     "mac": { "category": "public.app-category.developer-tools" },
     "linux": { "target": ["AppImage"], "category": "Development" },

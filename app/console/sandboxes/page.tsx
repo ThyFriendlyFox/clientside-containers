@@ -1,6 +1,6 @@
 import { SandboxManager } from "@/components/SandboxManager";
 
-export const metadata = { title: "Sandboxes · NemoClaw Console" };
+export const metadata = { title: "Sandboxes · clientside-containers" };
 
 export default function SandboxesPage() {
   return (

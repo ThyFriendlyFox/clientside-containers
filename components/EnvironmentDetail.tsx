@@ -46,7 +46,7 @@ export function EnvironmentDetail({ id }: { id: string }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `nemoclaw-${env?.name ?? id}.zip`;
+    a.download = `clientside-containers-${env?.name ?? id}.zip`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -162,7 +162,7 @@ export function EnvironmentDetail({ id }: { id: string }) {
           The bundle contains a Compose project, the OpenShell policy, start/stop scripts, and
           autostart units for systemd, launchd, and Windows Task Scheduler. Run it with
           <span className="font-mono text-zinc-300"> docker compose up -d</span>, or open it in the
-          NemoClaw Desktop app to manage start-on-boot.
+          clientside-containers desktop app to manage start-on-boot.
         </p>
 
         <div className="mt-4 flex items-center justify-between">

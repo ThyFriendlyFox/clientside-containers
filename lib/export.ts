@@ -43,14 +43,14 @@ Write-Host "Environment '${slug}' started."
 
 function systemdUnit(slug: string): string {
   return `[Unit]
-Description=NemoClaw environment ${slug}
+Description=clientside-containers environment ${slug}
 After=docker.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=%h/nemoclaw-${slug}
+WorkingDirectory=%h/clientside-containers-${slug}
 ExecStart=/usr/bin/docker compose up -d
 ExecStop=/usr/bin/docker compose down
 
@@ -65,12 +65,12 @@ function launchdPlist(slug: string): string {
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.nemoclaw.${slug}</string>
+  <string>com.clientside-containers.${slug}</string>
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
     <string>-c</string>
-    <string>cd "$HOME/nemoclaw-${slug}" &amp;&amp; /usr/local/bin/docker compose up -d</string>
+    <string>cd "$HOME/clientside-containers-${slug}" &amp;&amp; /usr/local/bin/docker compose up -d</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -87,9 +87,9 @@ $action = New-ScheduledTaskAction -Execute "powershell.exe" \`
   -Argument "-NoProfile -WindowStyle Hidden -File \`"$dir\\start.ps1\`""
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable
-Register-ScheduledTask -TaskName "NemoClaw-${slug}" -Action $action -Trigger $trigger \`
-  -Settings $settings -Description "Start NemoClaw environment ${slug} at logon" -Force
-Write-Host "Autostart registered. Remove with: Unregister-ScheduledTask -TaskName 'NemoClaw-${slug}'"
+Register-ScheduledTask -TaskName "clientside-containers-${slug}" -Action $action -Trigger $trigger \`
+  -Settings $settings -Description "Start clientside-containers environment ${slug} at logon" -Force
+Write-Host "Autostart registered. Remove with: Unregister-ScheduledTask -TaskName 'clientside-containers-${slug}'"
 `;
 }
 
@@ -99,9 +99,9 @@ function readme(env: Environment, slug: string): string {
   const endpoints = environmentEndpoints(env);
   const endpointLines = endpoints.map((e) => `- **${e.label}** — ${e.url}`).join("\n");
 
-  return `# NemoClaw environment: ${env.name}
+  return `# clientside-containers environment: ${env.name}
 
-Exported from NemoClaw Console. This bundle runs the environment on your own
+Exported from clientside-containers. This bundle runs the environment on your own
 host with Docker, and can start automatically on boot.
 
 - **Base:** ${base.label} (\`${base.image}\`)
@@ -134,11 +134,11 @@ ${endpointLines || "_No exposed endpoints._"}
 
 | Host | Steps |
 | --- | --- |
-| **Linux (systemd)** | Copy this folder to \`~/nemoclaw-${slug}\`, then \`mkdir -p ~/.config/systemd/user && cp autostart/nemoclaw-${slug}.service ~/.config/systemd/user/ && systemctl --user enable --now nemoclaw-${slug} && loginctl enable-linger $USER\` |
-| **macOS (launchd)** | Copy this folder to \`~/nemoclaw-${slug}\`, then \`cp autostart/com.nemoclaw.${slug}.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.nemoclaw.${slug}.plist\` |
+| **Linux (systemd)** | Copy this folder to \`~/clientside-containers-${slug}\`, then \`mkdir -p ~/.config/systemd/user && cp autostart/clientside-containers-${slug}.service ~/.config/systemd/user/ && systemctl --user enable --now clientside-containers-${slug} && loginctl enable-linger $USER\` |
+| **macOS (launchd)** | Copy this folder to \`~/clientside-containers-${slug}\`, then \`cp autostart/com.clientside-containers.${slug}.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.clientside-containers.${slug}.plist\` |
 | **Windows (Task Scheduler)** | Run \`autostart/Install-Autostart.ps1\` in an elevated PowerShell. |
 
-> Or install the **NemoClaw Desktop** companion app, drop this bundle into it,
+> Or install the **clientside-containers desktop** companion app, drop this bundle into it,
 > and toggle "Start on boot" — it manages the steps above for you.
 
 ## OpenShell policy
@@ -210,13 +210,13 @@ export function buildBundle(env: Environment): BundleFile[] {
   return [
     { path: "docker-compose.yml", content: composeToYaml(env) },
     { path: "openshell-policy.yaml", content: env.policyYaml },
-    { path: "nemoclaw-env.json", content: manifest(env, slug) },
+    { path: "clientside-containers.json", content: manifest(env, slug) },
     { path: "README.md", content: readme(env, slug) },
     { path: "start.sh", content: startSh(slug), executable: true },
     { path: "stop.sh", content: stopSh(slug), executable: true },
     { path: "start.ps1", content: startPs1(slug) },
-    { path: `autostart/nemoclaw-${slug}.service`, content: systemdUnit(slug) },
-    { path: `autostart/com.nemoclaw.${slug}.plist`, content: launchdPlist(slug) },
+    { path: `autostart/clientside-containers-${slug}.service`, content: systemdUnit(slug) },
+    { path: `autostart/com.clientside-containers.${slug}.plist`, content: launchdPlist(slug) },
     { path: "autostart/Install-Autostart.ps1", content: windowsAutostartPs1(slug) },
     ...bottleInitFiles(env),
   ];

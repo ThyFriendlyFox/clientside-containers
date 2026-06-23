@@ -34,31 +34,31 @@ function render(envs) {
     card.querySelector(".env-dir").textContent = env.dir;
     card.querySelector(".start").onclick = async () => {
       setStatus(`Starting ${env.name}…`);
-      const r = await window.nemoclaw.start(env.id);
+      const r = await window.csc.start(env.id);
       setStatus(r.output || (r.ok ? "Started." : "Failed."));
     };
     card.querySelector(".stop").onclick = async () => {
       setStatus(`Stopping ${env.name}…`);
-      const r = await window.nemoclaw.stop(env.id);
+      const r = await window.csc.stop(env.id);
       setStatus(r.output || (r.ok ? "Stopped." : "Failed."));
     };
     card.querySelector(".remove").onclick = async () => {
-      await window.nemoclaw.remove(env.id);
+      await window.csc.remove(env.id);
       await load();
     };
     card.querySelector(".autostart").onchange = async (e) => {
-      await window.nemoclaw.setAutostart(env.id, e.target.checked);
+      await window.csc.setAutostart(env.id, e.target.checked);
     };
     listEl.appendChild(card);
   }
 }
 
 async function load() {
-  render(await window.nemoclaw.list());
+  render(await window.csc.list());
 }
 
 document.getElementById("add").onclick = async () => {
-  const res = await window.nemoclaw.add();
+  const res = await window.csc.add();
   if (res && res.error) setStatus(res.error);
   await load();
 };
@@ -66,10 +66,10 @@ document.getElementById("add").onclick = async () => {
 document.getElementById("refresh").onclick = load;
 
 openAtLogin.onchange = async (e) => {
-  await window.nemoclaw.setOpenAtLogin(e.target.checked);
+  await window.csc.setOpenAtLogin(e.target.checked);
 };
 
 (async () => {
-  openAtLogin.checked = await window.nemoclaw.getOpenAtLogin();
+  openAtLogin.checked = await window.csc.getOpenAtLogin();
   await load();
 })();

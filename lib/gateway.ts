@@ -26,7 +26,7 @@ import type {
   Sandbox,
 } from "./types";
 
-export const MODE = process.env.NEMOCLAW_CONSOLE_MODE === "gateway" ? "gateway" : "simulation";
+export const MODE = process.env.CSC_MODE === "gateway" ? "gateway" : "simulation";
 export const GATEWAY_URL = process.env.OPENSHELL_GATEWAY_URL ?? "";
 
 export interface CreateSandboxInput {
@@ -119,7 +119,7 @@ function seed(): void {
 function ensureGatewayConfigured(): void {
   if (MODE === "gateway" && !GATEWAY_URL) {
     throw new Error(
-      "NEMOCLAW_CONSOLE_MODE=gateway requires OPENSHELL_GATEWAY_URL to be set.",
+      "CSC_MODE=gateway requires OPENSHELL_GATEWAY_URL to be set.",
     );
   }
 }

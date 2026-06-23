@@ -135,7 +135,7 @@ export async function handleDemoRequest(
       return new Response(zip as BodyInit, {
         headers: {
           "content-type": "application/zip",
-          "content-disposition": `attachment; filename="nemoclaw-${envSlug(env)}.zip"`,
+          "content-disposition": `attachment; filename="clientside-containers-${envSlug(env)}.zip"`,
         },
       });
     }

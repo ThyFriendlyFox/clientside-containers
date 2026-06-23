@@ -1,6 +1,6 @@
 import { EnvironmentManager } from "@/components/EnvironmentManager";
 
-export const metadata = { title: "Environments · NemoClaw Console" };
+export const metadata = { title: "Environments · clientside-containers" };
 
 export default function EnvironmentsPage() {
   return (
