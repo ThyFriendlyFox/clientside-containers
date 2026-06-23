@@ -1,7 +1,5 @@
-// Browser-side implementation of the console's REST API, used by the static
-// GitHub Pages demo. The same simulation functions that power the server route
-// handlers run here directly in the browser, so the demo is fully interactive
-// with no backend.
+// Browser-side REST API — all control-plane operations run in this tab.
+// No server is required; persistence is IndexedDB and execution is Web Workers / WebContainers.
 
 import {
   createEnvironment,
@@ -16,10 +14,13 @@ import {
   listEnvironments,
   listProviders,
   listSandboxes,
+  listContainers,
   setEnvironmentAutostart,
   setPolicy,
+  updateContainer,
 } from "./gateway";
 import { buildBundle, buildZip, envSlug } from "./export";
+import { runtimeCapabilities } from "./browser-runtime";
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -44,21 +45,35 @@ async function readBody(init?: RequestInit): Promise<unknown> {
   return undefined;
 }
 
-// Routes a request to the in-browser simulation. `path` starts at "/api/...".
-export async function handleDemoRequest(
+export async function handleClientsideRequest(
   path: string,
   search: URLSearchParams,
   method: string,
   init?: RequestInit,
 ): Promise<Response> {
   const m = method.toUpperCase();
-  const segments = path.replace(/^\/+|\/+$/g, "").split("/"); // ["api", ...]
-  const rest = segments.slice(1); // drop "api"
+  const segments = path.replace(/^\/+|\/+$/g, "").split("/");
+  const rest = segments.slice(1);
 
-  // /api/meta
-  if (rest[0] === "meta") return json({ mode: "simulation", gatewayUrl: null });
+  if (rest[0] === "meta") {
+    return json({
+      mode: "clientside",
+      gatewayUrl: null,
+      capabilities: runtimeCapabilities(),
+    });
+  }
 
-  // /api/sandboxes...
+  if (rest[0] === "containers") {
+    const id = rest[1];
+    if (!id) {
+      if (m === "GET") return json(await listContainers());
+    } else if (m === "PATCH") {
+      const body = (await readBody(init)) as { kind?: string; settings?: unknown; policyYaml?: string };
+      const view = await updateContainer(id, body as never);
+      return view ? json(view) : notFound();
+    }
+  }
+
   if (rest[0] === "sandboxes") {
     const id = rest[1];
     const sub = rest[2];
@@ -82,7 +97,6 @@ export async function handleDemoRequest(
     }
   }
 
-  // /api/providers...
   if (rest[0] === "providers") {
     const id = rest[1];
     if (!id) {
@@ -93,7 +107,6 @@ export async function handleDemoRequest(
     }
   }
 
-  // /api/environments...
   if (rest[0] === "environments") {
     const id = rest[1];
     const sub = rest[2];
@@ -121,7 +134,7 @@ export async function handleDemoRequest(
       return new Response(zip as BodyInit, {
         headers: {
           "content-type": "application/zip",
-          "content-disposition": `attachment; filename="nemoclaw-${envSlug(env)}.zip"`,
+          "content-disposition": `attachment; filename="clientside-containers-${envSlug(env)}.zip"`,
         },
       });
     }

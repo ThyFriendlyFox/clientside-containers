@@ -27,13 +27,12 @@ jobs:
 
       - run: npm ci
 
-      # The static demo has no server. Remove the server-only API route handlers
-      # so the export build succeeds; /api/* is served in the browser by the
-      # demo backend (see components/DemoBridge.tsx).
+      # Static export: no server. API routes are removed; ClientsideProvider
+      # serves /api/* in the browser with IndexedDB + Web Worker runtimes.
       - name: Remove server-only API routes
         run: rm -rf app/api
 
-      - name: Build static demo
+      - name: Build static site
         env:
           STATIC_EXPORT: "true"
           NEXT_PUBLIC_DEMO: "true"

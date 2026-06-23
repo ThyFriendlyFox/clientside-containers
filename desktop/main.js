@@ -37,7 +37,7 @@ function dockerCompose(dir, args) {
 
 function loadManifest(dir) {
   try {
-    const manifest = JSON.parse(fs.readFileSync(path.join(dir, "nemoclaw-env.json"), "utf8"));
+    const manifest = JSON.parse(fs.readFileSync(path.join(dir, "clientside-containers.json"), "utf8"));
     return { name: manifest.name || path.basename(dir), autostart: !!manifest.autostart };
   } catch {
     return { name: path.basename(dir), autostart: false };

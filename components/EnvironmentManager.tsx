@@ -19,7 +19,7 @@ export function EnvironmentManager() {
   const [cpus, setCpus] = useState(ENV_TEMPLATES[0].resources.cpus);
   const [memoryMb, setMemoryMb] = useState(ENV_TEMPLATES[0].resources.memoryMb);
   const [diskGb, setDiskGb] = useState(ENV_TEMPLATES[0].resources.diskGb);
-  const [driver, setDriver] = useState<ComputeDriver>("docker");
+  const [driver, setDriver] = useState<ComputeDriver>("browser");
   const [autostart, setAutostart] = useState(false);
 
   const tmpl = useMemo(() => getTemplate(templateId), [templateId]);

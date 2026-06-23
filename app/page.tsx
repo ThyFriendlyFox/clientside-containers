@@ -3,8 +3,12 @@ import { Logo } from "@/components/Logo";
 
 const FEATURES = [
   {
+    title: "Clientside containers",
+    body: "Sandboxes and mini OS bottles run in this browser tab — Web Workers for headless agents, streamed desktop frames for bottles, WebContainers when cross-origin isolated.",
+  },
+  {
     title: "Sandbox lifecycle",
-    body: "Create, inspect, and tear down isolated agent sandboxes across Docker, Podman, MicroVM, and Kubernetes drivers.",
+    body: "Create, inspect, and tear down isolated agent sandboxes. Default driver is browser; export to Docker when you need a native host.",
   },
   {
     title: "Declarative network policy",
@@ -31,8 +35,8 @@ const FEATURES = [
     body: "A heavier tier with full desktops (Windows, Ubuntu) and mobile OSes (Android via Redroid or an emulator) — wire up n8n, Chrome, Playwright, or Appium app testing in one click.",
   },
   {
-    title: "Export & run on the desktop",
-    body: "Export any environment as a Compose bundle with autostart units, or run it from the NemoClaw Desktop companion app that starts on boot.",
+    title: "Container grid",
+    body: "All sandboxes and environments in one running grid. Expand any into a minified OS bottle, or keep it headless — per-container settings for runtime, networking, and safety rules.",
   },
 ];
 
@@ -85,12 +89,12 @@ export default function LandingPage() {
             Built on NVIDIA NemoClaw + OpenShell
           </span>
           <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
-            A control plane for AI agents running in sandboxes.
+            Containers that run in your browser.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-zinc-400">
-            NemoClaw Console is the web interface for the NemoClaw reference stack and the
-            OpenShell runtime. Provision sandboxes, launch agents, edit network policy, and watch
-            the L7 egress engine make allow, route, and deny decisions in real time.
+            clientside-containers provisions agent sandboxes and mini OS bottles entirely in this
+            tab. Web Workers, WebContainers, and streamed desktop bottles — with OpenShell network
+            policy and egress decisions evaluated client-side. No server required.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/console" className="btn-primary px-5 py-2.5 text-base">

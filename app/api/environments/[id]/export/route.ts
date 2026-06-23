@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   return new NextResponse(zip as BodyInit, {
     headers: {
       "content-type": "application/zip",
-      "content-disposition": `attachment; filename="nemoclaw-${envSlug(env)}.zip"`,
+      "content-disposition": `attachment; filename="clientside-containers-${envSlug(env)}.zip"`,
     },
   });
 }

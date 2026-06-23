@@ -2,7 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("nemoclaw", {
+contextBridge.exposeInMainWorld("csc", {
   list: () => ipcRenderer.invoke("envs:list"),
   add: () => ipcRenderer.invoke("envs:add"),
   remove: (id) => ipcRenderer.invoke("envs:remove", id),

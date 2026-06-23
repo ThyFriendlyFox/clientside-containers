@@ -7,9 +7,28 @@ import {
   evaluateEgress,
 } from "./policy";
 import { DEFAULT_RESOURCES, ENV_TEMPLATES, getTemplate } from "./environments";
+import {
+  applyContainerUpdate,
+  defaultSettingsForEnvironment,
+  listContainerViews,
+  type UpdateContainerInput,
+} from "./containers";
+import { DEFAULT_CONTAINER_SETTINGS } from "./container-settings";
+import { seedStore } from "./seed";
+import {
+  isBrowser,
+  persistEnvironment,
+  persistProvider,
+  persistSandbox,
+  removeEnvironment,
+  removeProvider,
+  removeSandbox,
+} from "./clientside-store";
+import { startContainer, stopContainer } from "./browser-runtime";
 import type {
   AgentKind,
   ComputeDriver,
+  ContainerView,
   EgressRequest,
   EgressResult,
   EnvResources,
@@ -18,7 +37,12 @@ import type {
   Sandbox,
 } from "./types";
 
-export const MODE = process.env.NEMOCLAW_CONSOLE_MODE === "gateway" ? "gateway" : "simulation";
+export const MODE =
+  typeof window !== "undefined"
+    ? "clientside"
+    : process.env.CSC_MODE === "gateway"
+      ? "gateway"
+      : "simulation";
 export const GATEWAY_URL = process.env.OPENSHELL_GATEWAY_URL ?? "";
 
 export interface CreateSandboxInput {
@@ -55,61 +79,29 @@ function policyYamlForPreset(presetId: string | null | undefined): string {
 }
 
 function seed(): void {
-  if (store.seeded) return;
-  store.seeded = true;
+  seedStore();
+}
 
-  const claudeProvider: Provider = {
-    id: newId("prov"),
-    name: "claude-managed",
-    kind: "anthropic",
-    keyHint: "sk-ant-…7f2a",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-  };
-  store.providers.set(claudeProvider.id, claudeProvider);
+function defaultDriver(): ComputeDriver {
+  return isBrowser() ? "browser" : "docker";
+}
 
-  const githubPolicy = PRESETS.find((p) => p.id === "github-readonly")!.apply(DEFAULT_POLICY);
-  const demo: Sandbox = {
-    id: newId("sbx"),
-    name: "demo",
-    agent: "openclaw",
-    driver: "docker",
-    provider: claudeProvider.name,
-    status: "running",
-    createdAt: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-    policyYaml: policyToYaml(githubPolicy),
-    logs: [],
-  };
-  appendLog(demo, "info", "Sandbox provisioned on docker driver.");
-  appendLog(demo, "info", "Agent openclaw started with provider claude-managed.");
-  appendLog(demo, "allow", "GET api.github.com:443 allowed by \"github-api-readonly\".");
-  appendLog(demo, "deny", "POST api.github.com:443 not permitted by policy (read-only).");
-  store.sandboxes.set(demo.id, demo);
+async function afterSandboxWrite(sandbox: Sandbox): Promise<void> {
+  if (isBrowser()) await persistSandbox(sandbox);
+}
 
-  const tmpl = getTemplate("windows-n8n-chrome")!;
-  const env: Environment = {
-    id: newId("env"),
-    name: "win-automation",
-    templateId: tmpl.id,
-    baseId: tmpl.baseId,
-    apps: [...tmpl.apps],
-    resources: { ...tmpl.resources },
-    driver: "docker",
-    status: "running",
-    policyYaml: policyYamlForPreset(tmpl.presetId),
-    autostart: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-    logs: [],
-  };
-  appendLog(env, "info", "Environment provisioned from template windows-n8n-chrome.");
-  appendLog(env, "info", "Services started: desktop, chrome (CDP), n8n.");
-  appendLog(env, "info", "n8n wired to Chrome CDP at ws://chrome:3000.");
-  store.environments.set(env.id, env);
+async function afterEnvironmentWrite(env: Environment): Promise<void> {
+  if (isBrowser()) await persistEnvironment(env);
+}
+
+async function afterProviderWrite(provider: Provider): Promise<void> {
+  if (isBrowser()) await persistProvider(provider);
 }
 
 function ensureGatewayConfigured(): void {
   if (MODE === "gateway" && !GATEWAY_URL) {
     throw new Error(
-      "NEMOCLAW_CONSOLE_MODE=gateway requires OPENSHELL_GATEWAY_URL to be set.",
+      "CSC_MODE=gateway requires OPENSHELL_GATEWAY_URL to be set.",
     );
   }
 }
@@ -167,12 +159,13 @@ export async function createSandbox(input: CreateSandboxInput): Promise<Sandbox>
     id: newId("sbx"),
     name: input.name?.trim() || newId("sbx"),
     agent: input.agent,
-    driver: input.driver,
+    driver: input.driver ?? defaultDriver(),
     provider: input.provider ?? null,
     status: "running",
     createdAt: new Date().toISOString(),
     policyYaml: policyToYaml(policy),
     logs: [],
+    settings: { ...DEFAULT_CONTAINER_SETTINGS },
   };
   appendLog(sandbox, "info", `Sandbox provisioned on ${sandbox.driver} driver.`);
   appendLog(
@@ -181,6 +174,10 @@ export async function createSandbox(input: CreateSandboxInput): Promise<Sandbox>
     `Agent ${sandbox.agent} started${sandbox.provider ? ` with provider ${sandbox.provider}` : ""}.`,
   );
   store.sandboxes.set(sandbox.id, sandbox);
+  if (isBrowser()) {
+    await startContainer(sandbox);
+    await afterSandboxWrite(sandbox);
+  }
   return sandbox;
 }
 
@@ -190,7 +187,12 @@ export async function deleteSandbox(id: string): Promise<boolean> {
     return res.ok;
   }
   seed();
-  return store.sandboxes.delete(id);
+  const deleted = store.sandboxes.delete(id);
+  if (deleted && isBrowser()) {
+    await stopContainer(id);
+    await removeSandbox(id);
+  }
+  return deleted;
 }
 
 export async function setPolicy(id: string, policyYaml: string): Promise<Sandbox | null> {
@@ -210,6 +212,7 @@ export async function setPolicy(id: string, policyYaml: string): Promise<Sandbox
   if (!sandbox) return null;
   sandbox.policyYaml = policyYaml;
   appendLog(sandbox, "info", "Network/inference policy hot-reloaded.");
+  await afterSandboxWrite(sandbox);
   return sandbox;
 }
 
@@ -229,6 +232,7 @@ export async function execEgress(id: string, req: EgressRequest): Promise<Egress
   const policy = parsePolicy(sandbox.policyYaml);
   const result = evaluateEgress(policy, req);
   appendLog(sandbox, result.verdict, `${req.method} ${req.host}:${req.port} — ${result.detail}`);
+  await afterSandboxWrite(sandbox);
   return result;
 }
 
@@ -262,6 +266,7 @@ export async function createProvider(input: CreateProviderInput): Promise<Provid
     createdAt: new Date().toISOString(),
   };
   store.providers.set(provider.id, provider);
+  await afterProviderWrite(provider);
   return provider;
 }
 
@@ -271,7 +276,9 @@ export async function deleteProvider(id: string): Promise<boolean> {
     return res.ok;
   }
   seed();
-  return store.providers.delete(id);
+  const deleted = store.providers.delete(id);
+  if (deleted && isBrowser()) await removeProvider(id);
+  return deleted;
 }
 
 // --- Environments (heavy, OS-flavored tier) --------------------------------
@@ -318,12 +325,13 @@ export async function createEnvironment(input: CreateEnvironmentInput): Promise<
     baseId,
     apps: [...apps],
     resources,
-    driver: input.driver ?? "docker",
+    driver: input.driver ?? defaultDriver(),
     status: "running",
     policyYaml: policyYamlForPreset(tmpl?.presetId),
     autostart: input.autostart ?? false,
     createdAt: new Date().toISOString(),
     logs: [],
+    settings: defaultSettingsForEnvironment({ baseId }),
   };
   appendLog(
     env,
@@ -332,6 +340,10 @@ export async function createEnvironment(input: CreateEnvironmentInput): Promise<
   );
   appendLog(env, "info", `Services: ${apps.length ? apps.join(", ") : "base only"}.`);
   store.environments.set(env.id, env);
+  if (isBrowser()) {
+    await startContainer(env);
+    await afterEnvironmentWrite(env);
+  }
   return env;
 }
 
@@ -341,7 +353,12 @@ export async function deleteEnvironment(id: string): Promise<boolean> {
     return res.ok;
   }
   seed();
-  return store.environments.delete(id);
+  const deleted = store.environments.delete(id);
+  if (deleted && isBrowser()) {
+    await stopContainer(id);
+    await removeEnvironment(id);
+  }
+  return deleted;
 }
 
 export async function setEnvironmentAutostart(id: string, autostart: boolean): Promise<Environment | null> {
@@ -359,8 +376,63 @@ export async function setEnvironmentAutostart(id: string, autostart: boolean): P
   if (!env) return null;
   env.autostart = autostart;
   appendLog(env, "info", `Autostart on boot ${autostart ? "enabled" : "disabled"}.`);
+  await afterEnvironmentWrite(env);
   return env;
 }
 
 // Reference template ids available to clients (kept stable for tests/UI).
 export const TEMPLATE_IDS = ENV_TEMPLATES.map((t) => t.id);
+
+// --- Unified container grid -----------------------------------------------
+
+export async function listContainers(): Promise<ContainerView[]> {
+  const [sandboxes, environments] = await Promise.all([listSandboxes(), listEnvironments()]);
+  return listContainerViews(sandboxes, environments);
+}
+
+export async function updateContainer(
+  id: string,
+  input: UpdateContainerInput,
+): Promise<ContainerView | null> {
+  seed();
+  if (input.kind === "sandbox") {
+    const sb = store.sandboxes.get(id);
+    if (!sb) return null;
+    const { settings, policyYaml } = applyContainerUpdate(sb, input);
+    sb.settings = settings;
+    sb.policyYaml = policyYaml;
+    if (input.settings?.runtimeMode === "minios") {
+      appendLog(sb, "info", `Expanded to minified OS (${settings.miniosBaseId}). Desktop bottle provisioned.`);
+    } else if (input.settings?.runtimeMode === "headless") {
+      appendLog(sb, "info", "Collapsed to headless container mode.");
+    }
+    if (input.settings?.safetyProfile || input.settings?.networkEgress) {
+      appendLog(sb, "info", "Safety and network policy hot-reloaded.");
+    }
+    if (isBrowser()) {
+      await stopContainer(id);
+      await startContainer(sb);
+      await afterSandboxWrite(sb);
+    }
+    return listContainerViews([sb], []).find((c) => c.id === id) ?? null;
+  }
+  const env = store.environments.get(id);
+  if (!env) return null;
+  const { settings, policyYaml } = applyContainerUpdate(env, input);
+  env.settings = settings;
+  env.policyYaml = policyYaml;
+  if (input.settings?.runtimeMode === "minios") {
+    appendLog(env, "info", `Expanded to minified OS (${settings.miniosBaseId}).`);
+  } else if (input.settings?.runtimeMode === "headless") {
+    appendLog(env, "info", "Collapsed to headless container mode.");
+  }
+  if (input.settings?.safetyProfile || input.settings?.networkEgress) {
+    appendLog(env, "info", "Safety and network policy hot-reloaded.");
+  }
+  if (isBrowser()) {
+    await stopContainer(id);
+    await startContainer(env);
+    await afterEnvironmentWrite(env);
+  }
+  return listContainerViews([], [env]).find((c) => c.id === id) ?? null;
+}

@@ -1,13 +1,15 @@
-// Static export (for the GitHub Pages demo) is enabled with STATIC_EXPORT=true.
-// In that mode the app has no server: /api/* calls are served in the browser by
-// the demo backend (see components/DemoBridge.tsx). For normal server builds the
-// API route handlers are used and none of the export options apply.
+// Static export (for GitHub Pages) is enabled with STATIC_EXPORT=true.
+// In that mode the app has no server: ClientsideProvider handles /api/* in
+// the browser with IndexedDB persistence and Web Worker / WebContainer runtimes.
 const isExport = process.env.STATIC_EXPORT === "true";
 const basePath = process.env.PAGES_BASE_PATH ?? "";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Inlined into the client bundle so the browser runtime can resolve the
+  // Web Worker, COI service worker, and desktop bottle iframe under a base path.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   ...(isExport
     ? {
         output: "export",

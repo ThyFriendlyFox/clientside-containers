@@ -16,7 +16,7 @@ const CreateSchema = z.object({
       diskGb: z.number().int().min(1).max(2048),
     })
     .optional(),
-  driver: z.enum(["docker", "podman", "microvm", "kubernetes"]).optional(),
+  driver: z.enum(["browser", "docker", "podman", "microvm", "kubernetes"]).optional(),
   autostart: z.boolean().optional(),
 });
 

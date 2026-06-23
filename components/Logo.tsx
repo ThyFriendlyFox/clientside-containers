@@ -6,7 +6,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <path d="M7 16V8l5 5 5-5v8" stroke="#76b900" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span>
-        NemoClaw <span className="text-nv-green">Console</span>
+        clientside<span className="text-nv-green">-containers</span>
       </span>
     </span>
   );

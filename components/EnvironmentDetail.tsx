@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { Environment } from "@/lib/types";
 import { OS_BASES, getTemplate } from "@/lib/environments";
+import { desktopAppsIn } from "@/lib/desktop-apps";
+import { environmentEndpoints } from "@/lib/compose";
 import { StatusBadge } from "./badges";
 
 interface BundleFile {
@@ -44,7 +46,7 @@ export function EnvironmentDetail({ id }: { id: string }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `nemoclaw-${env?.name ?? id}.zip`;
+    a.download = `clientside-containers-${env?.name ?? id}.zip`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -110,6 +112,45 @@ export function EnvironmentDetail({ id }: { id: string }) {
         </section>
       )}
 
+      {base && base.desktop !== "none" && (
+        <section className="card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-medium text-white">Desktop bottle</h2>
+            <a
+              href={`http://localhost:${base.guiPort}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-primary"
+            >
+              Open desktop
+            </a>
+          </div>
+          <p className="mt-2 text-sm text-zinc-400">
+            This environment is a mini OS in a container — like a Bottles prefix, but a full Linux
+            desktop streamed to your browser. Export the bundle, run{" "}
+            <span className="font-mono text-zinc-300">docker compose up -d</span>, then open the
+            desktop URL and use the installed programs.
+          </p>
+          {desktopAppsIn(env.apps).length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm text-zinc-400">
+              {desktopAppsIn(env.apps).map((app) => (
+                <li key={app.id}>
+                  <span className="text-white">{app.label}</span>
+                  {app.autostart ? " — autostarts when the bottle boots" : " — launch from the desktop menu"}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ul className="mt-3 space-y-1 text-xs text-zinc-500">
+            {environmentEndpoints(env).map((ep) => (
+              <li key={ep.label}>
+                <span className="text-zinc-400">{ep.label}:</span> {ep.url}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-white">Export &amp; run locally</h2>
@@ -121,7 +162,7 @@ export function EnvironmentDetail({ id }: { id: string }) {
           The bundle contains a Compose project, the OpenShell policy, start/stop scripts, and
           autostart units for systemd, launchd, and Windows Task Scheduler. Run it with
           <span className="font-mono text-zinc-300"> docker compose up -d</span>, or open it in the
-          NemoClaw Desktop app to manage start-on-boot.
+          clientside-containers desktop app to manage start-on-boot.
         </p>
 
         <div className="mt-4 flex items-center justify-between">

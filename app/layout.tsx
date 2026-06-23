@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { DemoBridge } from "@/components/DemoBridge";
+import { ClientsideProvider } from "@/components/ClientsideProvider";
 
 export const metadata: Metadata = {
-  title: "NemoClaw Console",
+  title: "clientside-containers",
   description:
-    "Run AI agents like OpenClaw, Hermes, and LangChain Deep Agents Code inside NVIDIA OpenShell sandboxes — manage lifecycle, network policy, and routed inference from one console.",
+    "Run AI agents and mini OS bottles entirely in your browser — sandboxes, environments, network policy, and routed inference with no server.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <DemoBridge />
-        {children}
+        <ClientsideProvider>{children}</ClientsideProvider>
       </body>
     </html>
   );

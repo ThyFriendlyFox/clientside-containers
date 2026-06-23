@@ -1,4 +1,4 @@
-export const metadata = { title: "Desktop app · NemoClaw Console" };
+export const metadata = { title: "Desktop app · clientside-containers" };
 
 const STEPS = [
   {
@@ -6,7 +6,7 @@ const STEPS = [
     body: "From any environment, choose Download bundle. You get a Compose project, OpenShell policy, scripts, and autostart units.",
   },
   {
-    title: "Open it in NemoClaw Desktop",
+    title: "Open it in the desktop app",
     body: "Add the bundle folder to the desktop app. It runs the Compose project through your local Docker engine.",
   },
   {
@@ -19,7 +19,7 @@ export default function DesktopPage() {
   return (
     <div>
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-white">NemoClaw Desktop</h1>
+        <h1 className="text-2xl font-semibold text-white">clientside-containers Desktop</h1>
         <p className="mt-1 text-sm text-zinc-400">
           A companion desktop app that runs exported environments outside the browser and starts
           them on boot. Source lives in the{" "}
