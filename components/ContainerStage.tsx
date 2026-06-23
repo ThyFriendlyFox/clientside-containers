@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { TIERS, tierUsesEmulator, type Container } from "@/lib/container";
+import { TIERS, getBottledApp, type Container } from "@/lib/container";
 import { EmulatorScreen } from "./runtime/EmulatorScreen";
 import { AgentConsole } from "./runtime/AgentConsole";
+import { WebBottle } from "./runtime/WebBottle";
+
+function runtimeKind(container: Container): "agent" | "web" | "emulator" {
+  if (container.tier === "agent") return "agent";
+  if (container.tier === "app" && getBottledApp(container.appId).runtime === "web") return "web";
+  return "emulator";
+}
 
 interface Props {
   container: Container;
@@ -42,16 +49,19 @@ export function ContainerStage({ container, onClose, onStatus }: Props) {
         </button>
       </header>
       <div className="flex-1 overflow-hidden">
-        {tierUsesEmulator(container.tier) ? (
-          <EmulatorScreen container={container} onStatus={onStatus} />
-        ) : (
-          <AgentConsole container={container} onStatus={onStatus} />
-        )}
+        {(() => {
+          const kind = runtimeKind(container);
+          if (kind === "agent") return <AgentConsole container={container} onStatus={onStatus} />;
+          if (kind === "web") return <WebBottle container={container} onStatus={onStatus} />;
+          return <EmulatorScreen container={container} onStatus={onStatus} />;
+        })()}
       </div>
       <footer className="border-t border-ink-700 bg-ink-900 px-4 py-1.5 text-center text-xs text-zinc-500">
-        {tierUsesEmulator(container.tier)
-          ? "Real x86 Linux running in this tab via WebAssembly. Click the screen, then type."
-          : "OpenShell-style agent runtime in a Web Worker — API calls and policy egress decisions in this tab."}
+        {runtimeKind(container) === "agent"
+          ? "OpenShell-style agent runtime in a Web Worker — API calls and policy egress decisions in this tab."
+          : runtimeKind(container) === "web"
+            ? "WebAssembly app running in this tab."
+            : "Real x86 OS running in this tab via WebAssembly. Click the screen, then type."}
       </footer>
     </div>
   );

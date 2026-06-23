@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { bootEmulator, type V86Emulator } from "@/lib/v86-runtime";
 import type { Container } from "@/lib/container";
 import { getBottledApp } from "@/lib/container";
+import { getOsImage } from "@/lib/os-images";
 
 interface Props {
   container: Container;
@@ -21,7 +22,12 @@ export function EmulatorScreen({ container, onStatus }: Props) {
     let serialBuffer = "";
     let appLaunched = false;
 
-    const bottle = container.tier === "app" ? getBottledApp(container.appId) : null;
+    const bottle =
+      container.tier === "app" && getBottledApp(container.appId).runtime === "linux"
+        ? getBottledApp(container.appId)
+        : null;
+    // Mini OS boots its chosen image; Linux app bottles run inside Buildroot.
+    const image = container.tier === "minios" ? getOsImage(container.imageId) : getOsImage("buildroot");
 
     function onSerial(byte: unknown) {
       if (typeof byte !== "number") return;
@@ -41,8 +47,8 @@ export function EmulatorScreen({ container, onStatus }: Props) {
         onStatus?.("booting");
         const emulator = await bootEmulator({
           screenContainer: screenRef.current,
+          image,
           memoryMb: container.settings.memoryMb,
-          network: container.settings.network,
         });
         if (disposed) {
           emulator.destroy();
