@@ -1,4 +1,4 @@
-name: Deploy demo to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -27,15 +27,11 @@ jobs:
 
       - run: npm ci
 
-      # Static export: no server. API routes are removed; ClientsideProvider
-      # serves /api/* in the browser with IndexedDB + Web Worker runtimes.
-      - name: Remove server-only API routes
-        run: rm -rf app/api
-
+      # The whole app is static and runs in the browser. The same `out/` works
+      # identically on any static host (GitHub Pages, Vercel, self-hosted).
       - name: Build static site
         env:
           STATIC_EXPORT: "true"
-          NEXT_PUBLIC_DEMO: "true"
           PAGES_BASE_PATH: "/${{ github.event.repository.name }}"
         run: npm run build
 

@@ -1,216 +1,95 @@
 import yaml from "js-yaml";
-import type { EgressRequest, EgressResult } from "./types";
 
-// Declarative policy shape, mirroring OpenShell's policy.yaml.
-// See: https://github.com/NVIDIA/OpenShell/blob/main/examples/sandbox-policy-quickstart/policy.yaml
+// A small, real subset of the OpenShell policy model, evaluated client-side.
+// Reference: https://github.com/NVIDIA/OpenShell
 
-export interface NetworkEndpoint {
+export type Verdict = "allow" | "deny";
+
+export interface EgressRule {
   host: string;
-  port: number;
-  protocol: "rest" | "https" | "tcp";
-  enforcement: "enforce" | "observe";
-  access: "read-only" | "read-write";
+  methods: string[];
 }
 
-export interface NetworkBlock {
-  name: string;
-  endpoints: NetworkEndpoint[];
-  binaries: { path: string }[];
-}
-
-export interface InferenceRoute {
-  name: string;
-  host: string;
-  port: number;
-  backend: string;
-}
-
-export interface Policy {
-  version: number;
-  filesystem_policy: {
-    include_workdir: boolean;
-    read_only: string[];
-    read_write: string[];
+export interface AgentPolicy {
+  network: {
+    default: Verdict;
+    allow: EgressRule[];
   };
-  landlock: { compatibility: "best_effort" | "strict" };
-  process: { run_as_user: string; run_as_group: string };
-  network_policies: Record<string, NetworkBlock>;
-  inference_policies?: Record<string, InferenceRoute>;
+  filesystem: {
+    writable: string[];
+    readonly: string[];
+  };
 }
 
-const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-
-export const DEFAULT_POLICY: Policy = {
-  version: 1,
-  filesystem_policy: {
-    include_workdir: true,
-    read_only: ["/usr", "/lib", "/proc", "/dev/urandom", "/app", "/etc", "/var/log"],
-    read_write: ["/sandbox", "/tmp", "/dev/null"],
+export const DEFAULT_AGENT_POLICY: AgentPolicy = {
+  network: {
+    default: "deny",
+    allow: [
+      { host: "api.github.com", methods: ["GET"] },
+      { host: "registry.npmjs.org", methods: ["GET"] },
+      { host: "pypi.org", methods: ["GET"] },
+      { host: "files.pythonhosted.org", methods: ["GET"] },
+    ],
   },
-  landlock: { compatibility: "best_effort" },
-  process: { run_as_user: "sandbox", run_as_group: "sandbox" },
-  network_policies: {},
+  filesystem: {
+    writable: ["/workspace", "/tmp"],
+    readonly: ["/etc", "/usr"],
+  },
 };
 
-export function policyToYaml(policy: Policy): string {
-  const header =
-    "# Managed by clientside-containers. Static sections (filesystem, process) are\n" +
-    "# locked at sandbox creation; network and inference sections hot-reload.\n\n";
-  return header + yaml.dump(policy, { lineWidth: 100, noRefs: true, sortKeys: false });
-}
+export const DEFAULT_AGENT_POLICY_YAML = `# OpenShell-style policy, enforced in the browser.
+network:
+  default: deny
+  allow:
+    - host: api.github.com
+      methods: [GET]
+    - host: registry.npmjs.org
+      methods: [GET]
+    - host: pypi.org
+      methods: [GET]
+    - host: files.pythonhosted.org
+      methods: [GET]
+filesystem:
+  writable: [/workspace, /tmp]
+  readonly: [/etc, /usr]
+`;
 
-export function parsePolicy(text: string): Policy {
-  const parsed = yaml.load(text);
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Policy must be a YAML mapping");
-  }
-  const p = parsed as Partial<Policy>;
+export function parsePolicy(text: string): AgentPolicy {
+  const raw = (yaml.load(text) ?? {}) as Partial<AgentPolicy>;
   return {
-    ...DEFAULT_POLICY,
-    ...p,
-    filesystem_policy: { ...DEFAULT_POLICY.filesystem_policy, ...(p.filesystem_policy ?? {}) },
-    process: { ...DEFAULT_POLICY.process, ...(p.process ?? {}) },
-    landlock: { ...DEFAULT_POLICY.landlock, ...(p.landlock ?? {}) },
-    network_policies: p.network_policies ?? {},
-    inference_policies: p.inference_policies,
+    network: {
+      default: raw.network?.default === "allow" ? "allow" : "deny",
+      allow: Array.isArray(raw.network?.allow)
+        ? raw.network!.allow.map((r) => ({
+            host: String(r.host ?? ""),
+            methods: (r.methods ?? ["GET"]).map((m) => String(m).toUpperCase()),
+          }))
+        : [],
+    },
+    filesystem: {
+      writable: raw.filesystem?.writable?.map(String) ?? [],
+      readonly: raw.filesystem?.readonly?.map(String) ?? [],
+    },
   };
 }
 
-export interface PolicyPreset {
-  id: string;
-  label: string;
-  description: string;
-  apply: (policy: Policy) => Policy;
+export function policyToYaml(policy: AgentPolicy): string {
+  return yaml.dump(policy, { lineWidth: 80 });
 }
 
-export const PRESETS: PolicyPreset[] = [
-  {
-    id: "github-readonly",
-    label: "GitHub API (read-only)",
-    description: "Allow curl to GET from api.github.com. Write methods are blocked at L7.",
-    apply: (p) => ({
-      ...p,
-      network_policies: {
-        ...p.network_policies,
-        github_api: {
-          name: "github-api-readonly",
-          endpoints: [
-            { host: "api.github.com", port: 443, protocol: "rest", enforcement: "enforce", access: "read-only" },
-          ],
-          binaries: [{ path: "/usr/bin/curl" }],
-        },
-      },
-    }),
-  },
-  {
-    id: "npm-registry",
-    label: "npm registry",
-    description: "Allow node/npm to fetch packages from registry.npmjs.org.",
-    apply: (p) => ({
-      ...p,
-      network_policies: {
-        ...p.network_policies,
-        npm_registry: {
-          name: "npm-registry",
-          endpoints: [
-            { host: "registry.npmjs.org", port: 443, protocol: "https", enforcement: "enforce", access: "read-only" },
-          ],
-          binaries: [{ path: "/usr/bin/node" }, { path: "/usr/local/bin/npm" }],
-        },
-      },
-    }),
-  },
-  {
-    id: "pypi",
-    label: "PyPI",
-    description: "Allow python/uv to install packages from pypi.org and files.pythonhosted.org.",
-    apply: (p) => ({
-      ...p,
-      network_policies: {
-        ...p.network_policies,
-        pypi: {
-          name: "pypi",
-          endpoints: [
-            { host: "pypi.org", port: 443, protocol: "https", enforcement: "enforce", access: "read-only" },
-            { host: "files.pythonhosted.org", port: 443, protocol: "https", enforcement: "enforce", access: "read-only" },
-          ],
-          binaries: [{ path: "/usr/bin/python" }, { path: "/usr/local/bin/uv" }],
-        },
-      },
-    }),
-  },
-  {
-    id: "anthropic-inference",
-    label: "Routed inference (Anthropic)",
-    description: "Route api.anthropic.com through the privacy router with managed backend credentials.",
-    apply: (p) => ({
-      ...p,
-      inference_policies: {
-        ...(p.inference_policies ?? {}),
-        anthropic: {
-          name: "anthropic-managed",
-          host: "api.anthropic.com",
-          port: 443,
-          backend: "nvidia-managed-inference",
-        },
-      },
-    }),
-  },
-];
-
-// Mirror OpenShell's three-way decision: allow, route-for-inference, or deny.
-export function evaluateEgress(policy: Policy, req: EgressRequest): EgressResult {
+export function evaluateEgress(
+  policy: AgentPolicy,
+  req: { host: string; method: string },
+): { verdict: Verdict; reason: string } {
   const method = req.method.toUpperCase();
-
-  const inference = policy.inference_policies ?? {};
-  for (const [key, route] of Object.entries(inference)) {
-    if (route.host === req.host && route.port === req.port) {
-      return {
-        verdict: "route",
-        matchedBlock: key,
-        detail: `Routed to inference backend "${route.backend}" — caller credentials stripped.`,
-      };
-    }
+  const match = policy.network.allow.find(
+    (r) => r.host === req.host && (r.methods.includes(method) || r.methods.includes("*")),
+  );
+  if (match) {
+    return { verdict: "allow", reason: `matched allow rule for ${match.host}` };
   }
-
-  for (const [key, block] of Object.entries(policy.network_policies)) {
-    const endpoint = block.endpoints.find((e) => e.host === req.host && e.port === req.port);
-    if (!endpoint) continue;
-
-    const binaryAllowed = block.binaries.some((b) => b.path === req.binary);
-    if (!binaryAllowed) {
-      return {
-        verdict: "deny",
-        matchedBlock: key,
-        detail: `Binary ${req.binary} is not permitted by block "${block.name}".`,
-      };
-    }
-
-    if (READ_METHODS.has(method)) {
-      return {
-        verdict: "allow",
-        matchedBlock: key,
-        detail: `${method} ${req.host}:${req.port} allowed by "${block.name}".`,
-      };
-    }
-
-    if (endpoint.access === "read-only") {
-      return {
-        verdict: "deny",
-        matchedBlock: key,
-        detail: `${method} ${req.host}:${req.port} not permitted by policy (read-only).`,
-      };
-    }
-
-    return {
-      verdict: "allow",
-      matchedBlock: key,
-      detail: `${method} ${req.host}:${req.port} allowed by "${block.name}" (read-write).`,
-    };
+  if (policy.network.default === "allow") {
+    return { verdict: "allow", reason: "default policy is allow" };
   }
-
-  return {
-    verdict: "deny",
-    detail: `No policy block matches ${req.host}:${req.port}. Default egress is minimal.`,
-  };
+  return { verdict: "deny", reason: `no rule permits ${method} ${req.host}` };
 }
