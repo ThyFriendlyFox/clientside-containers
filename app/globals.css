@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-ink-950 text-zinc-200 antialiased;
+  background-image:
+    radial-gradient(60rem 40rem at 80% -10%, rgba(118, 185, 0, 0.08), transparent),
+    radial-gradient(50rem 30rem at -10% 10%, rgba(118, 185, 0, 0.05), transparent);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-ink-700 bg-ink-900/70 backdrop-blur;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-nv-green text-black hover:bg-nv-greenDark;
+  }
+  .btn-ghost {
+    @apply btn border border-ink-600 bg-transparent text-zinc-200 hover:border-nv-green/60 hover:text-white;
+  }
+  .btn-danger {
+    @apply btn border border-red-900/60 bg-transparent text-red-300 hover:bg-red-950/40;
+  }
+  .input {
+    @apply w-full rounded-md border border-ink-600 bg-ink-950/60 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-nv-green/70;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-400;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+  }
+}
