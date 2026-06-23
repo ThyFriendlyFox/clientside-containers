@@ -1,17 +1,19 @@
 import Link from "next/link";
-import { listSandboxes, listProviders, MODE } from "@/lib/gateway";
+import { listSandboxes, listProviders, listEnvironments, MODE } from "@/lib/gateway";
 import { AGENTS } from "@/lib/types";
 import { StatusBadge } from "@/components/badges";
 
 export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
-  const [sandboxes, providers] = await Promise.all([listSandboxes(), listProviders()]);
-  const running = sandboxes.filter((s) => s.status === "running").length;
-
+  const [sandboxes, environments, providers] = await Promise.all([
+    listSandboxes(),
+    listEnvironments(),
+    listProviders(),
+  ]);
   const stats = [
     { label: "Sandboxes", value: sandboxes.length },
-    { label: "Running", value: running },
+    { label: "Environments", value: environments.length },
     { label: "Providers", value: providers.length },
     { label: "Backend mode", value: MODE },
   ];
@@ -65,6 +67,43 @@ export default async function OverviewPage() {
                 <span className="text-xs text-zinc-400">{AGENTS[s.agent].label}</span>
                 <span className="text-xs text-zinc-500">{s.driver}</span>
                 <StatusBadge status={s.status} />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-medium text-white">Environments</h2>
+          <Link href="/console/environments" className="text-sm text-nv-green hover:underline">
+            View all →
+          </Link>
+        </div>
+        <div className="card divide-y divide-ink-800">
+          {environments.length === 0 && (
+            <div className="p-6 text-sm text-zinc-500">
+              No environments yet.{" "}
+              <Link href="/console/environments" className="text-nv-green hover:underline">
+                Create one
+              </Link>
+              .
+            </div>
+          )}
+          {environments.slice(0, 5).map((env) => (
+            <Link
+              key={env.id}
+              href={`/console/environments/${env.id}`}
+              className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-ink-800/50"
+            >
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-white">{env.name}</span>
+                <span className="font-mono text-xs text-zinc-500">{env.id}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-zinc-400">{env.apps.join(", ") || "base only"}</span>
+                {env.autostart && <span className="text-xs text-nv-green">autostart</span>}
+                <StatusBadge status={env.status} />
               </div>
             </Link>
           ))}

@@ -7,8 +7,10 @@ import { Logo } from "./Logo";
 const NAV = [
   { href: "/console", label: "Overview", exact: true },
   { href: "/console/sandboxes", label: "Sandboxes" },
+  { href: "/console/environments", label: "Environments" },
   { href: "/console/policies", label: "Network policies" },
   { href: "/console/providers", label: "Providers" },
+  { href: "/console/desktop", label: "Desktop app" },
 ];
 
 export function Sidebar({ mode }: { mode: string }) {

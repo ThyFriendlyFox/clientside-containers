@@ -26,6 +26,14 @@ const FEATURES = [
     title: "Multi-agent support",
     body: "Launch OpenClaw, Hermes, or LangChain Deep Agents Code through the NemoClaw reference stack.",
   },
+  {
+    title: "OS-flavored environments",
+    body: "A heavier tier with a full desktop and preinstalled apps — wire up n8n, a Chrome CDP endpoint, and Playwright in one click.",
+  },
+  {
+    title: "Export & run on the desktop",
+    body: "Export any environment as a Compose bundle with autostart units, or run it from the NemoClaw Desktop companion app that starts on boot.",
+  },
 ];
 
 const STACK = [
