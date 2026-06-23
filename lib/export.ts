@@ -111,7 +111,7 @@ ${tmpl ? `- **Template:** ${tmpl.label}\n- **Wiring:** ${tmpl.wiring}` : ""}
 ## Prerequisites
 
 - Docker Engine with the Compose plugin (\`docker compose\`).
-${base.id === "windows" ? "- A host with `/dev/kvm` available (Linux with KVM) for the Windows base.\n" : ""}
+${base.id === "windows" ? "- A host with `/dev/kvm` available (Linux with KVM) for the Windows base.\n" : ""}${base.id === "android-emulator" ? "- A host with `/dev/kvm` for usable Android emulator speed.\n- View the device at http://localhost:6080. Appium (if enabled) is on http://localhost:4723.\n" : ""}${base.id === "android-redroid" ? "- The host kernel must provide the `binder_linux` and `ashmem_linux` modules (load with `sudo modprobe binder_linux devices=binder,hwbinder,vndbinder` and `sudo modprobe ashmem_linux`).\n- Connect with `adb connect localhost:5555`. If `scrcpy-web` is enabled, open http://localhost:8000.\n" : ""}${base.id === "ios-external" ? "- iOS cannot run in a Linux container. Provide a reachable macOS host with Xcode and Appium/WebDriverAgent, then set `IOS_APPIUM_URL` in the appium service to that host.\n" : ""}
 
 ## Run
 

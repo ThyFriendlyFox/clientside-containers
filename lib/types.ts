@@ -61,13 +61,18 @@ export interface Sandbox {
 
 export type DesktopAccess = "kasmvnc" | "novnc" | "web-viewer" | "none";
 
+export type OsFamily = "desktop" | "mobile";
+
 export interface OsBase {
   id: string;
   label: string;
+  family: OsFamily;
   image: string;
   desktop: DesktopAccess;
   guiPort: number;
   note: string;
+  // Whether this base actually runs in a Linux container. iOS does not.
+  containerized?: boolean;
 }
 
 export interface AppSpec {

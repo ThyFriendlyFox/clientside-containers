@@ -15,6 +15,7 @@ interface ComposeService {
   devices?: string[];
   cap_add?: string[];
   cap_drop?: string[];
+  privileged?: boolean;
   shm_size?: string;
   stop_grace_period?: string;
   depends_on?: string[];
@@ -41,7 +42,48 @@ export function buildComposeProject(env: Environment): ComposeProject {
   const cpus = env.resources.cpus;
   const mem = `${env.resources.memoryMb}m`;
 
-  if (base.desktop !== "none") {
+  const hasAppium = env.apps.includes("appium");
+
+  if (base.family === "mobile") {
+    if (base.id === "android-emulator") {
+      // budtmo/docker-android: noVNC web view (6080), ADB (5555), built-in Appium (4723).
+      services.device = {
+        image: base.image,
+        container_name: "android",
+        restart: "unless-stopped",
+        privileged: true,
+        devices: ["/dev/kvm"],
+        ports: ["6080:6080", "5555:5555", "4723:4723"],
+        networks: [NETWORK],
+        environment: {
+          EMULATOR_DEVICE: "Samsung Galaxy S10",
+          WEB_VNC: "true",
+          APPIUM: hasAppium ? "true" : "false",
+          EMULATOR_ADDITIONAL_ARGS: "-no-snapshot-save",
+        },
+        cpus,
+        mem_limit: mem,
+      };
+    } else if (base.id === "android-redroid") {
+      // redroid runs Android directly via the host kernel; ADB on 5555.
+      services.device = {
+        image: base.image,
+        container_name: "android",
+        restart: "unless-stopped",
+        privileged: true,
+        ports: ["5555:5555"],
+        networks: [NETWORK],
+        volumes: ["android_data:/data"],
+        command:
+          "androidboot.redroid_width=1080 androidboot.redroid_height=2340 androidboot.redroid_dpi=440 " +
+          "androidboot.redroid_gpu_mode=guest",
+        cpus,
+        mem_limit: mem,
+      };
+      volumes.android_data = {};
+    }
+    // ios-external has no device container — it targets a macOS host over Appium.
+  } else if (base.desktop !== "none") {
     const desktop: ComposeService = {
       image: base.image,
       container_name: "desktop",
@@ -161,6 +203,46 @@ export function buildComposeProject(env: Environment): ComposeProject {
     volumes.pg_data = {};
   }
 
+  // Browser-based Android screen view (ws-scrcpy), attaches to the device over ADB.
+  if (env.apps.includes("scrcpy-web") && base.family === "mobile" && base.id !== "ios-external") {
+    services["scrcpy-web"] = {
+      image: "ethanzhu/ws-scrcpy:latest",
+      container_name: "scrcpy-web",
+      restart: "unless-stopped",
+      networks: [NETWORK],
+      ports: ["8000:8000"],
+      depends_on: ["device"],
+      cpus,
+      mem_limit: mem,
+    };
+  }
+
+  // Standalone Appium server. The Android emulator base bundles Appium already,
+  // so only add a separate server for redroid and the external iOS runner.
+  if (hasAppium && base.id !== "android-emulator") {
+    const appiumEnv: Record<string, string> = {};
+    if (base.id === "android-redroid") {
+      // Point Appium's ADB at the redroid device container.
+      appiumEnv.ANDROID_ADB_SERVER_ADDRESS = "device";
+      appiumEnv.ANDROID_ADB_SERVER_PORT = "5555";
+    } else if (base.id === "ios-external") {
+      // iOS runs on a macOS host; forward to its WebDriverAgent/Appium endpoint.
+      appiumEnv.IOS_APPIUM_URL = "http://CHANGE-ME-macos-host.local:4723";
+    }
+    services.appium = {
+      image: "appium/appium:latest",
+      container_name: "appium",
+      restart: "unless-stopped",
+      networks: [NETWORK],
+      ports: ["4723:4723"],
+      environment: Object.keys(appiumEnv).length ? appiumEnv : undefined,
+      depends_on: base.id === "android-redroid" ? ["device"] : undefined,
+      command: "appium --base-path /wd/hub --allow-insecure chromedriver_autodownload",
+      cpus,
+      mem_limit: mem,
+    };
+  }
+
   // Strip undefined keys for clean YAML.
   for (const svc of Object.values(services)) {
     for (const k of Object.keys(svc) as (keyof ComposeService)[]) {
@@ -195,6 +277,20 @@ export function composeToYaml(env: Environment): string {
 export function environmentEndpoints(env: Environment): { label: string; url: string }[] {
   const base = getBase(env.baseId);
   const endpoints: { label: string; url: string }[] = [];
+
+  if (base.family === "mobile") {
+    if (base.id === "android-emulator") {
+      endpoints.push({ label: "Android screen (web)", url: "http://localhost:6080" });
+      endpoints.push({ label: "ADB", url: "adb connect localhost:5555" });
+    }
+    if (base.id === "android-redroid") {
+      endpoints.push({ label: "ADB", url: "adb connect localhost:5555" });
+    }
+    if (env.apps.includes("scrcpy-web")) endpoints.push({ label: "scrcpy (web)", url: "http://localhost:8000" });
+    if (env.apps.includes("appium")) endpoints.push({ label: "Appium", url: "http://localhost:4723" });
+    return endpoints;
+  }
+
   if (base.desktop !== "none") {
     endpoints.push({ label: `${base.label} desktop`, url: `http://localhost:${base.guiPort}` });
   }
