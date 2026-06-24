@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "fetch-v86-images": "bash scripts/fetch-v86-images.sh"
   },
   "dependencies": {
     "@webcontainer/api": "^1.6.4",

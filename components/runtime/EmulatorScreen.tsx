@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { bootEmulator, type V86Emulator } from "@/lib/v86-runtime";
 import type { Container, ContainerPreview } from "@/lib/container";
-import { getOsImage } from "@/lib/os-images";
+import { getOsImage, isGraphicalOsImage } from "@/lib/os-images";
 import { getConfig } from "@/lib/configs";
 import { createSerialTerminal, feedSerialByte, keyToSerialBytes } from "@/lib/serial-terminal";
 
@@ -58,7 +58,7 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
   const [serial, setSerial] = useState("");
 
   const image = container.tier === "minios" ? getOsImage(container.imageId) : getOsImage("buildroot");
-  const graphical = image.kind === "windows";
+  const graphical = isGraphicalOsImage(image);
   const config = container.tier === "app" ? getConfig(container.configId) : null;
 
   useEffect(() => {
@@ -196,15 +196,26 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
     <div className="relative h-full w-full bg-black">
       {overlay}
 
-      {/* Graphical OSes (e.g. Windows) render to the VGA screen. */}
+      {/* Graphical OSes (Windows, Ubuntu desktop, …) render to the VGA screen. */}
       <div
         ref={screenRef}
-        className={graphical ? "flex h-full w-full items-center justify-center" : "pointer-events-none absolute -left-[9999px] h-1 w-1 overflow-hidden"}
+        tabIndex={graphical ? 0 : undefined}
+        className={
+          graphical
+            ? "flex h-full w-full cursor-default items-center justify-center outline-none"
+            : "pointer-events-none absolute -left-[9999px] h-1 w-1 overflow-hidden"
+        }
         style={{ background: "#000" }}
       >
         <div style={{ whiteSpace: "pre", font: "14px / 1.05 monospace", color: "#e5e5e5" }} />
-        <canvas style={{ display: graphical ? "block" : "none" }} />
+        <canvas style={{ display: graphical ? "block" : "none", maxHeight: "100%", maxWidth: "100%" }} />
       </div>
+
+      {graphical && phase === "running" && (
+        <p className="pointer-events-none absolute bottom-2 left-0 right-0 text-center text-[10px] text-zinc-600">
+          Click the screen for keyboard and mouse
+        </p>
+      )}
 
       {/* Linux containers run their config in a serial terminal. */}
       {!graphical && (
