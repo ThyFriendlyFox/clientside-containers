@@ -47,8 +47,8 @@ export function Dashboard() {
 
   // Create is optimistic: the container appears and opens immediately; we
   // persist to IndexedDB in the background so storage latency never blocks UI.
-  function handleCreate(tier: ContainerTier, appId?: string) {
-    const created = buildContainer(tier, appId);
+  function handleCreate(tier: ContainerTier, selectionId: string) {
+    const created = buildContainer(tier, selectionId);
     setCreating(false);
     setContainers((prev) => [...prev, created]);
     setOpenId(created.id);

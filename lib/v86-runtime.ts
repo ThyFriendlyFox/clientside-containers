@@ -32,29 +32,37 @@ export async function loadV86(): Promise<V86Constructor> {
   return v86Promise;
 }
 
+import type { OsImage } from "./os-images";
+
 export interface BootOptions {
   screenContainer: HTMLElement;
-  memoryMb: number;
-  /** Disable the guest's network when networking is off. */
-  network: "off" | "restricted" | "open";
+  image: OsImage;
+  /** Override the image's default RAM (MiB). */
+  memoryMb?: number;
 }
 
 const asset = (p: string) => `${BASE_PATH}/v86/${p}`;
 
 export async function bootEmulator(opts: BootOptions): Promise<V86Emulator> {
   const V86 = await loadV86();
-  const emulator = new V86({
+  const { image } = opts;
+
+  const config: Record<string, unknown> = {
     wasm_path: asset("v86.wasm"),
     screen_container: opts.screenContainer,
     bios: { url: asset("bios/seabios.bin") },
     vga_bios: { url: asset("bios/vgabios.bin") },
-    bzimage: { url: asset("images/buildroot-bzimage68.bin") },
     autostart: true,
-    memory_size: Math.max(64, opts.memoryMb) * 1024 * 1024,
-    vga_memory_size: 8 * 1024 * 1024,
+    memory_size: Math.max(32, opts.memoryMb ?? image.memoryMb) * 1024 * 1024,
+    vga_memory_size: image.vgaMemoryMb * 1024 * 1024,
     disable_speaker: true,
-    cmdline:
-      "tsc=reliable mitigations=off random.trust_cpu=on nowatchdog page_poison=on",
-  });
-  return emulator;
+  };
+
+  if (image.bzimage) config.bzimage = { url: asset(image.bzimage.path) };
+  if (image.cmdline) config.cmdline = image.cmdline;
+  if (image.fda) config.fda = { url: image.fda.url };
+  if (image.cdrom) config.cdrom = { url: image.cdrom.url, async: true };
+  if (image.hda) config.hda = { url: image.hda.url, async: true, size: image.hda.sizeBytes };
+
+  return new V86(config);
 }

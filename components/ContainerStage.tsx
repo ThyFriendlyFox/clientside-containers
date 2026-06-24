@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { TIERS, tierUsesEmulator, type Container } from "@/lib/container";
+import { TIERS, type Container } from "@/lib/container";
 import { EmulatorScreen } from "./runtime/EmulatorScreen";
 import { AgentConsole } from "./runtime/AgentConsole";
 
@@ -42,16 +42,18 @@ export function ContainerStage({ container, onClose, onStatus }: Props) {
         </button>
       </header>
       <div className="flex-1 overflow-hidden">
-        {tierUsesEmulator(container.tier) ? (
-          <EmulatorScreen container={container} onStatus={onStatus} />
-        ) : (
+        {container.tier === "agent" ? (
           <AgentConsole container={container} onStatus={onStatus} />
+        ) : (
+          <EmulatorScreen container={container} onStatus={onStatus} />
         )}
       </div>
       <footer className="border-t border-ink-700 bg-ink-900 px-4 py-1.5 text-center text-xs text-zinc-500">
-        {tierUsesEmulator(container.tier)
-          ? "Real x86 Linux running in this tab via WebAssembly. Click the screen, then type."
-          : "OpenShell-style agent runtime in a Web Worker — API calls and policy egress decisions in this tab."}
+        {container.tier === "agent"
+          ? "OpenShell-style agent runtime in a Web Worker — API calls and policy egress decisions in this tab."
+          : container.tier === "app"
+            ? "Linux container running its config. Type into the terminal once the prompt appears."
+            : "Real x86 OS running in this tab via WebAssembly. Click the screen, then type."}
       </footer>
     </div>
   );

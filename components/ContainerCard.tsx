@@ -1,6 +1,6 @@
 "use client";
 
-import { TIERS, getBottledApp, type Container } from "@/lib/container";
+import { TIERS, containerSubtitle, type Container } from "@/lib/container";
 
 const STATUS_DOT: Record<Container["status"], string> = {
   stopped: "bg-zinc-500",
@@ -17,8 +17,7 @@ interface Props {
 
 export function ContainerCard({ container, onOpen, onSettings }: Props) {
   const tier = TIERS[container.tier];
-  const subtitle =
-    container.tier === "app" ? getBottledApp(container.appId).label : tier.label;
+  const subtitle = containerSubtitle(container);
 
   return (
     <article className="card group relative flex flex-col overflow-hidden">

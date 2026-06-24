@@ -9,6 +9,9 @@
 // progressively larger minified OSes in the browser, on any device.
 
 import { DEFAULT_AGENT_POLICY_YAML } from "./policy";
+import { getAgentPreset, policyYamlForAgent } from "./agents";
+import { getOsImage } from "./os-images";
+import { getConfig } from "./configs";
 
 export type ContainerTier = "agent" | "app" | "minios";
 
@@ -29,8 +32,12 @@ export interface Container {
   id: string;
   name: string;
   tier: ContainerTier;
-  /** For the `app` tier: which bottled program to launch. */
-  appId?: string;
+  /** For the `app` tier: which config (command sequence) to run after boot. */
+  configId?: string;
+  /** For the `agent` tier: which preconfigured agent. */
+  agentId?: string;
+  /** For the `minios` tier: which OS image to boot. */
+  imageId?: string;
   status: ContainerStatus;
   createdAt: string;
   settings: ContainerSettings;
@@ -49,7 +56,7 @@ export const TIERS: Record<
   },
   app: {
     label: "App bottle",
-    blurb: "A single program running inside a minified Linux.",
+    blurb: "A minified Linux that runs a config — a sequence of commands — on boot.",
     defaultMemoryMb: 192,
     icon: "M4 4h16v6H4zM4 14h16v6H4z",
   },
@@ -60,46 +67,6 @@ export const TIERS: Record<
     icon: "M3 5h18v12H3zM8 21h8M12 17v4",
   },
 };
-
-/** Programs available to the `app` (bottle) tier. Each runs in the minified Linux. */
-export interface BottledApp {
-  id: string;
-  label: string;
-  /** Shell command run on boot inside the guest. */
-  command: string;
-  blurb: string;
-}
-
-export const BOTTLED_APPS: BottledApp[] = [
-  {
-    id: "shell",
-    label: "BusyBox shell",
-    command: "/bin/sh",
-    blurb: "An interactive POSIX shell.",
-  },
-  {
-    id: "lua",
-    label: "Lua REPL",
-    command: "lua",
-    blurb: "Interactive Lua interpreter.",
-  },
-  {
-    id: "vi",
-    label: "vi editor",
-    command: "vi",
-    blurb: "The vi text editor.",
-  },
-  {
-    id: "top",
-    label: "Process monitor",
-    command: "top",
-    blurb: "Live view of guest processes.",
-  },
-];
-
-export function getBottledApp(id: string | undefined): BottledApp {
-  return BOTTLED_APPS.find((a) => a.id === id) ?? BOTTLED_APPS[0];
-}
 
 export const DEFAULT_SETTINGS: Record<ContainerTier, ContainerSettings> = {
   agent: {
@@ -120,22 +87,48 @@ export function tierUsesEmulator(tier: ContainerTier): boolean {
   return tier === "app" || tier === "minios";
 }
 
-const TIER_PREFIX: Record<ContainerTier, string> = {
-  agent: "agent",
-  app: "app",
-  minios: "linux",
-};
+/**
+ * Pure factory — build a Container without touching storage. `selectionId` is
+ * the per-tier choice: an agent id (agent), a bottled-app id (app), or an OS
+ * image id (minios).
+ */
+export function buildContainer(tier: ContainerTier, selectionId?: string, name?: string): Container {
+  const settings: ContainerSettings = { ...DEFAULT_SETTINGS[tier] };
+  let configId: string | undefined;
+  let agentId: string | undefined;
+  let imageId: string | undefined;
+  let prefix: string;
 
-/** Pure factory — build a Container without touching storage. */
-export function buildContainer(tier: ContainerTier, appId?: string, name?: string): Container {
-  const prefix = tier === "app" ? appId ?? TIER_PREFIX.app : TIER_PREFIX[tier];
+  if (tier === "agent") {
+    agentId = getAgentPreset(selectionId).id;
+    settings.policyYaml = policyYamlForAgent(agentId);
+    prefix = agentId;
+  } else if (tier === "app") {
+    configId = getConfig(selectionId).id;
+    prefix = configId;
+  } else {
+    const image = getOsImage(selectionId);
+    imageId = image.id;
+    settings.memoryMb = image.memoryMb;
+    prefix = image.kind === "windows" ? "win" : "linux";
+  }
+
   return {
     id: newId(),
     name: name?.trim() || `${prefix}-${Math.random().toString(36).slice(2, 5)}`,
     tier,
-    appId: tier === "app" ? appId ?? "shell" : undefined,
+    configId,
+    agentId,
+    imageId,
     status: "stopped",
     createdAt: new Date().toISOString(),
-    settings: { ...DEFAULT_SETTINGS[tier] },
+    settings,
   };
+}
+
+/** Short label describing a container's preconfigured selection. */
+export function containerSubtitle(c: Container): string {
+  if (c.tier === "agent") return getAgentPreset(c.agentId).label;
+  if (c.tier === "app") return getConfig(c.configId).label;
+  return getOsImage(c.imageId).label;
 }

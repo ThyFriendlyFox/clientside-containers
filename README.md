@@ -32,6 +32,24 @@ The Mini OS and App tiers boot a real Linux kernel with [v86](https://github.com
 an x86 emulator compiled to WebAssembly. The kernel, BIOS, and WASM engine are
 served as static assets from `public/v86/`, so there is nothing to install.
 
+### Preconfigs
+
+The **New container** dialog offers preconfigured choices per tier:
+
+- **Agent presets** — OpenClaw, NanoClaw, Hermes, Claude Code, Gemini CLI, Grok
+  Code, Cursor, and Cursor CLI. Each ships an OpenShell policy whose network
+  allowlist matches that agent's APIs (e.g. `api.anthropic.com`,
+  `generativelanguage.googleapis.com`, `api.x.ai`, `api2.cursor.sh`).
+- **OS images** (Mini OS) — Buildroot Linux (bundled) and a miniature
+  **Windows 1.01** (1.47 MB). The Windows image is proprietary Microsoft
+  software, so it is loaded at runtime from its upstream host rather than
+  redistributed here.
+- **Configs** (App bottle) — a config is a sequence of commands the container
+  runs in the guest after boot (provisioning). Includes an interactive shell, a
+  `system-info` config, and an **OpenTTD** config that installs and launches
+  OpenTTD in the container. (The bundled minimal Linux can run shell configs;
+  launching a GUI app like OpenTTD needs a desktop-capable image.)
+
 ## How it works
 
 ```
@@ -45,11 +63,14 @@ components/
   SettingsModal.tsx Per-container settings (memory, networking, autostart)
   NewContainerMenu.tsx Pick a tier and create
   runtime/
-    EmulatorScreen.tsx  Mounts v86 (app + mini-OS tiers)
+    EmulatorScreen.tsx  Mounts v86: serial terminal (Linux) or VGA (Windows)
     AgentConsole.tsx    Agent tier: YAML policy editor + API/egress console
 lib/
   container.ts      Container model, tiers, bottled-app catalog
   containers-db.ts  IndexedDB persistence (containers survive reloads)
+  agents.ts         Agent presets + per-agent OpenShell policies
+  os-images.ts      Mini OS image catalog (Buildroot Linux, Windows 1.01)
+  configs.ts        App-tier configs: command sequences run in the container
   policy.ts         OpenShell policy: parse / serialize / evaluate egress
   v86-runtime.ts    Loads the v86 engine and boots the guest
   base-path.ts      Base path for static assets under a sub-path
