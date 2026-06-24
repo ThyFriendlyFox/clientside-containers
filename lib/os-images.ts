@@ -1,6 +1,5 @@
 // OS images available to the Mini OS tier. Each describes how to boot it in v86.
-// Linux is bundled same-origin; the proprietary Windows image is loaded at
-// runtime from its upstream host (we don't redistribute Microsoft's binary).
+// Images are bundled under public/v86/ (same-origin) so they work on any static host.
 
 export interface OsImage {
   id: string;
@@ -9,11 +8,11 @@ export interface OsImage {
   blurb: string;
   memoryMb: number;
   vgaMemoryMb: number;
-  /** v86 media — exactly one boot medium is set. `bundled` paths are under /v86. */
+  /** v86 media — paths are under public/v86/. */
   bzimage?: { path: string };
-  fda?: { url: string };
-  cdrom?: { url: string; sizeBytes?: number };
-  hda?: { url: string; sizeBytes?: number };
+  fda?: { path: string };
+  cdrom?: { path: string; sizeBytes?: number };
+  hda?: { path: string; sizeBytes?: number };
   cmdline?: string;
 }
 
@@ -35,9 +34,7 @@ export const OS_IMAGES: OsImage[] = [
     blurb: "A miniature graphical Windows (1.47 MB) with Paint and Reversi.",
     memoryMb: 32,
     vgaMemoryMb: 8,
-    // Proprietary Microsoft image — loaded from the upstream host at runtime
-    // (CORS-enabled), not committed to this repo.
-    fda: { url: "https://i.copy.sh/windows101.img" },
+    fda: { path: "images/windows101.img" },
   },
 ];
 

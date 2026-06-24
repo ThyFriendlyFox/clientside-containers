@@ -40,10 +40,8 @@ The **New container** dialog offers preconfigured choices per tier:
   Code, Cursor, and Cursor CLI. Each ships an OpenShell policy whose network
   allowlist matches that agent's APIs (e.g. `api.anthropic.com`,
   `generativelanguage.googleapis.com`, `api.x.ai`, `api2.cursor.sh`).
-- **OS images** (Mini OS) — Buildroot Linux (bundled) and a miniature
-  **Windows 1.01** (1.47 MB). The Windows image is proprietary Microsoft
-  software, so it is loaded at runtime from its upstream host rather than
-  redistributed here.
+- **OS images** (Mini OS) — Buildroot Linux and a miniature **Windows 1.01**
+  (1.47 MB floppy). Both are bundled under `public/v86/` (same-origin).
 - **Configs** (App bottle) — a config is a sequence of commands the container
   runs in the guest after boot (provisioning). Includes an interactive shell, a
   `system-info` config, and an **OpenTTD** config that installs and launches
