@@ -4,7 +4,8 @@
 export interface OsImage {
   id: string;
   label: string;
-  kind: "linux" | "windows";
+  /** Serial Linux shell vs VGA graphical guest. */
+  kind: "linux" | "windows" | "desktop";
   blurb: string;
   memoryMb: number;
   vgaMemoryMb: number;
@@ -36,7 +37,25 @@ export const OS_IMAGES: OsImage[] = [
     vgaMemoryMb: 8,
     fda: { path: "images/windows101.img" },
   },
+  {
+    id: "ubuntu1004",
+    label: "Ubuntu 10.04 Desktop",
+    kind: "desktop",
+    blurb:
+      "Ubuntu Lucid Lynx with the GNOME desktop (32-bit live CD). First boot loads the ~694 MB image; allow a few minutes to reach the desktop.",
+    memoryMb: 512,
+    vgaMemoryMb: 16,
+    cdrom: {
+      path: "images/ubuntu-1004-desktop-i386.iso",
+      sizeBytes: 728_150_016,
+    },
+  },
 ];
+
+/** True when the guest renders to the VGA canvas (not the serial terminal). */
+export function isGraphicalOsImage(image: OsImage): boolean {
+  return image.kind === "windows" || image.kind === "desktop";
+}
 
 export function getOsImage(id: string | undefined): OsImage {
   return OS_IMAGES.find((i) => i.id === id) ?? OS_IMAGES[0];

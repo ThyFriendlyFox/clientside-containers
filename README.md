@@ -40,8 +40,11 @@ The **New container** dialog offers preconfigured choices per tier:
   Code, Cursor, and Cursor CLI. Each ships an OpenShell policy whose network
   allowlist matches that agent's APIs (e.g. `api.anthropic.com`,
   `generativelanguage.googleapis.com`, `api.x.ai`, `api2.cursor.sh`).
-- **OS images** (Mini OS) — Buildroot Linux and a miniature **Windows 1.01**
-  (1.47 MB floppy). Both are bundled under `public/v86/` (same-origin).
+- **OS images** (Mini OS) — Buildroot Linux, **Ubuntu 10.04 Desktop** (GNOME live
+  CD, fetched at build/deploy time), and a miniature **Windows 1.01** (1.47 MB
+  floppy). Windows and Buildroot are bundled under `public/v86/`; Ubuntu is
+  downloaded by `npm run fetch-v86-images` (or CI) so the ~694 MB image stays
+  same-origin without bloating git history.
 - **Configs** (App bottle) — a config is a sequence of commands the container
   runs in the guest after boot (provisioning). Includes an interactive shell, a
   `system-info` config, and an **OpenTTD** config that installs and launches
@@ -67,7 +70,7 @@ lib/
   container.ts      Container model, tiers, bottled-app catalog
   containers-db.ts  IndexedDB persistence (containers survive reloads)
   agents.ts         Agent presets + per-agent OpenShell policies
-  os-images.ts      Mini OS image catalog (Buildroot Linux, Windows 1.01)
+  os-images.ts      Mini OS image catalog (Buildroot, Ubuntu desktop, Windows 1.01)
   configs.ts        App-tier configs: command sequences run in the container
   policy.ts         OpenShell policy: parse / serialize / evaluate egress
   v86-runtime.ts    Loads the v86 engine and boots the guest
@@ -104,6 +107,7 @@ STATIC_EXPORT=true npm run build   # static export to out/
 | `npm run build` | Production build (`STATIC_EXPORT=true` for static export). |
 | `npm run lint` | ESLint. |
 | `npm run typecheck` | TypeScript. |
+| `npm run fetch-v86-images` | Download large v86 disk images (Ubuntu desktop ISO). |
 
 ## Notes
 

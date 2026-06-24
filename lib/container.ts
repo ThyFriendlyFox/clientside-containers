@@ -120,7 +120,8 @@ export function buildContainer(tier: ContainerTier, selectionId?: string, name?:
     const image = getOsImage(selectionId);
     imageId = image.id;
     settings.memoryMb = image.memoryMb;
-    prefix = image.kind === "windows" ? "win" : "linux";
+    prefix =
+      image.kind === "windows" ? "win" : image.kind === "desktop" ? "ubuntu" : "linux";
   }
 
   return {

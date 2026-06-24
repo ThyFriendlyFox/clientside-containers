@@ -26,3 +26,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large v86 disk images (fetched by scripts/fetch-v86-images.sh)
+/public/v86/images/ubuntu-1004-desktop-i386.iso
