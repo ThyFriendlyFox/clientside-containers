@@ -1,34 +1,34 @@
 ---
 version: alpha
 name: clientside-containers
-description: Design system for clientside-containers — Light theme (the Dark theme is documented at /design.dark.md).
+description: Design system for clientside-containers — Dark theme only.
 colors:
-  primary: "#171717"
-  secondary: "#4d4d4d"
-  tertiary: "#006bff"
-  neutral: "#f2f2f2"
-  background-100: "#ffffff"
-  background-200: "#fafafa"
-  gray-100: "#f2f2f2"
-  gray-200: "#ebebeb"
-  gray-300: "#e6e6e6"
-  gray-400: "#eaeaea"
-  gray-500: "#c9c9c9"
-  gray-600: "#a8a8a8"
-  gray-700: "#8f8f8f"
-  gray-800: "#7d7d7d"
-  gray-900: "#4d4d4d"
-  gray-1000: "#171717"
-  gray-alpha-100: "#0000000d"
-  gray-alpha-200: "#00000015"
-  gray-alpha-300: "#0000001a"
-  gray-alpha-400: "#00000014"
-  gray-alpha-500: "#00000036"
-  gray-alpha-600: "#0000003d"
-  gray-alpha-700: "#00000070"
-  gray-alpha-800: "#00000082"
-  gray-alpha-900: "#000000b3"
-  gray-alpha-1000: "#000000e8"
+  primary: "#ededed"
+  secondary: "#a1a1a1"
+  tertiary: "#0070f3"
+  neutral: "#1a1a1a"
+  background-100: "#0a0a0a"
+  background-200: "#171717"
+  gray-100: "#1a1a1a"
+  gray-200: "#292929"
+  gray-300: "#333333"
+  gray-400: "#444444"
+  gray-500: "#555555"
+  gray-600: "#666666"
+  gray-700: "#888888"
+  gray-800: "#999999"
+  gray-900: "#a1a1a1"
+  gray-1000: "#ededed"
+  gray-alpha-100: "#ffffff0d"
+  gray-alpha-200: "#ffffff15"
+  gray-alpha-300: "#ffffff1a"
+  gray-alpha-400: "#ffffff14"
+  gray-alpha-500: "#ffffff36"
+  gray-alpha-600: "#ffffff3d"
+  gray-alpha-700: "#ffffff70"
+  gray-alpha-800: "#ffffff82"
+  gray-alpha-900: "#ffffffb3"
+  gray-alpha-1000: "#ffffffe8"
   blue-100: "#f0f7ff"
   blue-200: "#e9f4ff"
   blue-300: "#dfefff"
@@ -407,9 +407,9 @@ components:
 
 ## Overview
 
-This is the design system for **clientside-containers** — the browser dashboard for agent sandboxes, app bottles, and mini OS containers. The aesthetic is minimal and high-contrast: plenty of whitespace, restrained color, and content set on near-neutral surfaces. Prioritize readability and accessibility, and use color to signal state or hierarchy rather than decoration.
+This is the design system for **clientside-containers** — the browser dashboard for agent sandboxes, app bottles, and mini OS containers. The aesthetic is minimal and high-contrast on dark surfaces: restrained color, clear hierarchy, and content set on near-black backgrounds. Prioritize readability and accessibility, and use color to signal state or hierarchy rather than decoration.
 
-This is the Light theme. The Dark theme uses the same token names with different values and lives at `/design.dark.md`. Colors are sRGB hex with Display P3 equivalents. Typography uses [Geist Sans](https://vercel.com/font) and [Geist Mono](https://vercel.com/font).
+This app uses the **Dark theme only**. Colors are sRGB hex with Display P3 equivalents where noted. Typography uses [Geist Sans](https://vercel.com/font) and [Geist Mono](https://vercel.com/font).
 
 ## Colors
 
@@ -426,7 +426,7 @@ Each non-background scale runs 10 steps (`100`–`1000`), and the step encodes i
 - `900` secondary text and icons
 - `1000` primary text and icons
 
-`background-100` is the primary page and card surface; `background-200` is a secondary surface for subtle separation. The `gray-alpha-*` tokens are translucent, so they layer over any background; use them for borders, dividers, overlays, and hover states. Solid `gray-*` holds its contrast on any surface, so use it for text and opaque fills. Accent scales carry meaning: `blue` for links, focus, and the primary call to action; `red` for errors and destructive actions; `amber` for warnings and booting states; plus `green`, `teal`, `purple`, and `pink` for status and tier accents. Use the hex tokens everywhere; each accent scale also ships a `*-p3` wide-gamut value in `oklch()` for Display P3 screens. The Dark theme redefines the same names at `/design.dark.md`.
+`background-100` is the primary page and card surface (`#0a0a0a`); `background-200` is a secondary surface for subtle separation (`#171717`). The `gray-alpha-*` tokens are translucent white overlays for borders, dividers, overlays, and hover states. Solid `gray-*` holds its contrast on any surface, so use it for text and opaque fills. Accent scales carry meaning: `blue` for links, focus, and the primary call to action; `red` for errors and destructive actions; `amber` for warnings and booting states; plus `green`, `teal`, `purple`, and `pink` for status and tier accents.
 
 ## Typography
 
@@ -445,11 +445,11 @@ Spacing follows a 4px scale: 4, 8, 12, 16, 24, 32, 40, 64, 96px. Keep a three-st
 
 ## Elevation & Depth
 
-Hierarchy comes from tonal surfaces and borders first, so shadows stay subtle. Apply these `box-shadow` values for the light theme:
+Hierarchy comes from tonal surfaces and borders first, so shadows stay subtle. Apply these `box-shadow` values for the dark theme:
 
-- Raised cards: `0 2px 2px rgba(0, 0, 0, 0.04)`
-- Popovers and menus: `0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06)`
-- Modals and dialogs: `0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06)`
+- Raised cards: `0 2px 2px rgba(0, 0, 0, 0.32)`
+- Popovers and menus: `0 1px 1px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.24), 0 16px 24px -8px rgba(0, 0, 0, 0.32)`
+- Modals and dialogs: `0 1px 1px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.24), 0 24px 32px -8px rgba(0, 0, 0, 0.4)`
 
 Tooltips take the lightest of these. Pair each elevation with the matching radius below.
 
@@ -471,9 +471,9 @@ The `components` tokens above give ready-to-use values per element (`backgroundC
 - Error button: solid `red-800` fill with white text, for destructive actions (e.g. **Delete Container**).
 - Input: `background-100` fill, translucent border, 6px radius.
 
-The variant tokens are the default medium (40px) size. Use the `button-small`/`input-small` (32px) and `button-large`/`input-large` (48px) tokens for the other sizes; large buttons step up to `button-16`. Hover and active states step up the scale: a `100` fill becomes `200` on hover and `300` on active, and borders move from `400` to `500` to `600`. Disabled uses a `gray-100` fill, `gray-700` text, and a not-allowed cursor. Focus shows a two-layer ring (`box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #006bff`): a 2px gap in the surface color, then a 2px `blue-700` ring.
+The variant tokens are the default medium (40px) size. Use the `button-small`/`input-small` (32px) and `button-large`/`input-large` (48px) tokens for the other sizes; large buttons step up to `button-16`. Hover and active states step up the scale: a `100` fill becomes `200` on hover and `300` on active, and borders move from `400` to `500` to `600`. Disabled uses a `gray-200` fill, `gray-700` text, and a not-allowed cursor. Focus shows a two-layer ring (`box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #0070f3`): a 2px gap in the surface color, then a 2px `blue-700` ring.
 
-Container runtime views (emulator screen, agent console, terminal) keep a dark `#000` or near-black surface so guest output stays legible; only the dashboard chrome, cards, modals, and settings use the light theme.
+Container runtime views (emulator screen, agent console, terminal) use a pure `#000` surface so guest output stays legible; the dashboard chrome, cards, modals, and settings share the same dark Geist palette (`background-100`, `gray-1000` text).
 
 ## Voice & Content
 

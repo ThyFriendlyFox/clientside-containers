@@ -144,7 +144,7 @@ export function AgentConsole({
               <div
                 key={i}
                 className={
-                  line.dir === "in" ? "text-blue-500" : line.dir === "out" ? "text-green-500" : "text-gray-600"
+                  line.dir === "in" ? "text-blue-600" : line.dir === "out" ? "text-green-600" : "text-gray-700"
                 }
               >
                 <span className="select-none text-gray-700">

@@ -184,7 +184,7 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
         </>
       ) : (
         <>
-          <span className="h-6 w-6 animate-spin rounded-full border-2 border-gray-700 border-t-blue-600" />
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-gray-500 border-t-blue-600" />
           <p>{phase === "loading" ? "Loading emulator…" : `Booting ${image.label}…`}</p>
           <p className="text-copy-13 text-gray-700">First boot fetches the OS image</p>
         </>

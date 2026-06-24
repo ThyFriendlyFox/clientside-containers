@@ -120,11 +120,11 @@ const config: Config = {
         lg: "16px",
       },
       boxShadow: {
-        card: "0 2px 2px rgba(0, 0, 0, 0.04)",
+        card: "0 2px 2px rgba(0, 0, 0, 0.32)",
         popover:
-          "0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06)",
+          "0 1px 1px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.24), 0 16px 24px -8px rgba(0, 0, 0, 0.32)",
         modal:
-          "0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06)",
+          "0 1px 1px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.24), 0 24px 32px -8px rgba(0, 0, 0, 0.4)",
       },
       maxWidth: {
         content: "1200px",
