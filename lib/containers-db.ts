@@ -50,22 +50,12 @@ function getDb(): Promise<IDBPDatabase<CscDb>> {
   return dbPromise;
 }
 
-async function seedIfEmpty(db: IDBPDatabase<CscDb>): Promise<void> {
-  if (await db.get("meta", "seeded")) return;
-  await db.put("meta", true, "seeded");
-  const seeds: Container[] = [
-    buildContainer("agent", undefined, "agent-1"),
-    buildContainer("app", "shell", "shell-1"),
-    buildContainer("minios", undefined, "linux-1"),
-  ];
-  const tx = db.transaction("containers", "readwrite");
-  await Promise.all(seeds.map((c) => tx.store.put(c, c.id)));
-  await tx.done;
-}
-
 export async function listContainers(): Promise<Container[]> {
   const db = await getDb();
-  await seedIfEmpty(db);
+  // No default seeds: a fresh browser starts empty. Containers are created by
+  // the user and stored only in this browser's IndexedDB (per-device, never
+  // synced). Identical default containers used to appear on every device,
+  // which looked like cross-device sync but was just deterministic seeding.
   const all = await db.getAll("containers");
   return all.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
