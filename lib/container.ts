@@ -28,6 +28,14 @@ export interface ContainerSettings {
   policyYaml?: string;
 }
 
+/** A thumbnail of a container's interface, captured while it ran. */
+export interface ContainerPreview {
+  /** "image": a downscaled screenshot (data URL). "text": terminal/console text. */
+  kind: "image" | "text";
+  data: string;
+  at: string;
+}
+
 export interface Container {
   id: string;
   name: string;
@@ -41,6 +49,8 @@ export interface Container {
   status: ContainerStatus;
   createdAt: string;
   settings: ContainerSettings;
+  /** Last captured preview of the running interface. */
+  preview?: ContainerPreview;
 }
 
 export const TIERS: Record<

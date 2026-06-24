@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { TIERS, type Container } from "@/lib/container";
+import { TIERS, type Container, type ContainerPreview } from "@/lib/container";
 import { EmulatorScreen } from "./runtime/EmulatorScreen";
 import { AgentConsole } from "./runtime/AgentConsole";
 
@@ -9,9 +9,10 @@ interface Props {
   container: Container;
   onClose: () => void;
   onStatus: (status: Container["status"]) => void;
+  onPreview: (preview: ContainerPreview) => void;
 }
 
-export function ContainerStage({ container, onClose, onStatus }: Props) {
+export function ContainerStage({ container, onClose, onStatus, onPreview }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -43,9 +44,9 @@ export function ContainerStage({ container, onClose, onStatus }: Props) {
       </header>
       <div className="flex-1 overflow-hidden">
         {container.tier === "agent" ? (
-          <AgentConsole container={container} onStatus={onStatus} />
+          <AgentConsole container={container} onStatus={onStatus} onPreview={onPreview} />
         ) : (
-          <EmulatorScreen container={container} onStatus={onStatus} />
+          <EmulatorScreen container={container} onStatus={onStatus} onPreview={onPreview} />
         )}
       </div>
       <footer className="border-t border-ink-700 bg-ink-900 px-4 py-1.5 text-center text-xs text-zinc-500">

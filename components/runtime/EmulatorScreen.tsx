@@ -2,13 +2,42 @@
 
 import { useEffect, useRef, useState } from "react";
 import { bootEmulator, type V86Emulator } from "@/lib/v86-runtime";
-import type { Container } from "@/lib/container";
+import type { Container, ContainerPreview } from "@/lib/container";
 import { getOsImage } from "@/lib/os-images";
 import { getConfig } from "@/lib/configs";
 
 interface Props {
   container: Container;
   onStatus?: (status: Container["status"]) => void;
+  onPreview?: (preview: ContainerPreview) => void;
+}
+
+function lastLines(text: string, n: number): string {
+  return text
+    .replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, "") // strip ANSI escapes
+    .split("\n")
+    .map((l) => l.replace(/[^\x20-\x7e]/g, ""))
+    .filter((l) => l.trim().length)
+    .slice(-n)
+    .join("\n");
+}
+
+function canvasThumbnail(canvas: HTMLCanvasElement, maxW = 320): string | null {
+  if (!canvas.width || !canvas.height) return null;
+  const scale = Math.min(1, maxW / canvas.width);
+  const w = Math.max(1, Math.round(canvas.width * scale));
+  const h = Math.max(1, Math.round(canvas.height * scale));
+  const off = document.createElement("canvas");
+  off.width = w;
+  off.height = h;
+  const ctx = off.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(canvas, 0, 0, w, h);
+  try {
+    return off.toDataURL("image/jpeg", 0.6);
+  } catch {
+    return null;
+  }
 }
 
 // Map a keyboard event to bytes for the serial console.
@@ -26,10 +55,13 @@ function keyToBytes(e: React.KeyboardEvent): string | null {
   return null;
 }
 
-export function EmulatorScreen({ container, onStatus }: Props) {
+export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
   const screenRef = useRef<HTMLDivElement>(null);
   const serialRef = useRef<HTMLPreElement>(null);
   const emulatorRef = useRef<V86Emulator | null>(null);
+  const serialTextRef = useRef("");
+  const onPreviewRef = useRef(onPreview);
+  onPreviewRef.current = onPreview;
   const [phase, setPhase] = useState<"loading" | "booting" | "running" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
   const [serial, setSerial] = useState("");
@@ -48,6 +80,7 @@ export function EmulatorScreen({ container, onStatus }: Props) {
       const ch = String.fromCharCode(byte);
       buffer += ch;
       if (buffer.length > 200_000) buffer = buffer.slice(-100_000);
+      serialTextRef.current = buffer;
       if (!disposed) setSerial(buffer);
 
       // Once the shell prompt appears, run the config's commands in order.
@@ -117,6 +150,33 @@ export function EmulatorScreen({ container, onStatus }: Props) {
     const el = serialRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [serial]);
+
+  // Capture a preview thumbnail of the interface while it runs (and a final one
+  // on close), so the grid card can show what the container looks like.
+  useEffect(() => {
+    if (phase !== "running") return;
+
+    const capture = () => {
+      const emit = onPreviewRef.current;
+      if (!emit) return;
+      if (graphical) {
+        const canvas = screenRef.current?.querySelector("canvas");
+        const data = canvas ? canvasThumbnail(canvas) : null;
+        if (data) emit({ kind: "image", data, at: new Date().toISOString() });
+      } else {
+        const text = lastLines(serialTextRef.current, 12);
+        if (text) emit({ kind: "text", data: text, at: new Date().toISOString() });
+      }
+    };
+
+    const interval = setInterval(capture, 2500);
+    const first = setTimeout(capture, 800);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(first);
+      capture();
+    };
+  }, [phase, graphical]);
 
   function onTerminalKey(e: React.KeyboardEvent) {
     const bytes = keyToBytes(e);
