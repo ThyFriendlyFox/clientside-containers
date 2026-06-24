@@ -3,48 +3,62 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #171717;
-  --color-secondary: #4d4d4d;
-  --color-tertiary: #006bff;
-  --color-background-100: #ffffff;
-  --color-background-200: #fafafa;
-  --color-gray-100: #f2f2f2;
-  --color-gray-200: #ebebeb;
-  --color-gray-300: #e6e6e6;
-  --color-gray-400: #eaeaea;
-  --color-gray-500: #c9c9c9;
-  --color-gray-600: #a8a8a8;
-  --color-gray-700: #8f8f8f;
-  --color-gray-800: #7d7d7d;
-  --color-gray-900: #4d4d4d;
-  --color-gray-1000: #171717;
-  --color-gray-alpha-100: #0000000d;
-  --color-gray-alpha-200: #00000015;
-  --color-gray-alpha-300: #0000001a;
-  --color-gray-alpha-400: #00000014;
-  --color-gray-alpha-500: #00000036;
-  --color-gray-alpha-600: #0000003d;
-  --color-gray-alpha-700: #00000070;
-  --color-gray-alpha-800: #00000082;
-  --color-gray-alpha-900: #000000b3;
-  --color-gray-alpha-1000: #000000e8;
-  --color-blue-100: #f0f7ff;
-  --color-blue-700: #006bff;
-  --color-blue-800: #0059ec;
-  --color-red-100: #ffeeef;
-  --color-red-400: #ffd7d6;
+  /* Geist dark theme — semantic tokens (see design.md) */
+  --color-primary: #ededed;
+  --color-secondary: #a1a1a1;
+  --color-tertiary: #0070f3;
+  --color-background-100: #0a0a0a;
+  --color-background-200: #171717;
+  --color-gray-100: #1a1a1a;
+  --color-gray-200: #292929;
+  --color-gray-300: #333333;
+  --color-gray-400: #444444;
+  --color-gray-500: #555555;
+  --color-gray-600: #666666;
+  --color-gray-700: #888888;
+  --color-gray-800: #999999;
+  --color-gray-900: #a1a1a1;
+  --color-gray-1000: #ededed;
+  --color-gray-alpha-100: #ffffff0d;
+  --color-gray-alpha-200: #ffffff15;
+  --color-gray-alpha-300: #ffffff1a;
+  --color-gray-alpha-400: #ffffff14;
+  --color-gray-alpha-500: #ffffff36;
+  --color-gray-alpha-600: #ffffff3d;
+  --color-gray-alpha-700: #ffffff70;
+  --color-gray-alpha-800: #ffffff82;
+  --color-gray-alpha-900: #ffffffb3;
+  --color-gray-alpha-1000: #ffffffe8;
+  --color-blue-100: #001a33;
+  --color-blue-200: #002347;
+  --color-blue-300: #003166;
+  --color-blue-400: #00408a;
+  --color-blue-500: #0060d1;
+  --color-blue-600: #3291ff;
+  --color-blue-700: #0070f3;
+  --color-blue-800: #52aeff;
+  --color-blue-900: #94ccff;
+  --color-blue-1000: #cae7ff;
+  --color-red-100: #2a0a0e;
+  --color-red-400: #5c1a22;
+  --color-red-500: #8a2430;
+  --color-red-600: #ff676d;
   --color-red-700: #fc0035;
   --color-red-800: #ea001d;
+  --color-red-900: #ff676d;
+  --color-red-1000: #ffb1b3;
   --color-amber-600: #ffa600;
   --color-amber-700: #ffae00;
+  --color-green-500: #82eb8d;
   --color-green-600: #4ce15e;
   --color-green-700: #28a948;
   --color-green-800: #279141;
-  --shadow-focus: 0 0 0 2px #ffffff, 0 0 0 4px #006bff;
+  --color-green-900: #4ce15e;
+  --shadow-focus: 0 0 0 2px #0a0a0a, 0 0 0 4px #0070f3;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -57,7 +71,7 @@ body {
   }
 
   .btn {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-sm px-2.5 text-button-14 transition-colors duration-150 ease-geist disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-700;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-sm px-2.5 text-button-14 transition-colors duration-150 ease-geist disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-700;
   }
 
   .btn:focus-visible {
@@ -78,7 +92,7 @@ body {
   }
 
   .btn-danger {
-    @apply btn bg-red-800 text-white hover:bg-red-900 active:bg-red-1000;
+    @apply btn bg-red-800 text-white hover:bg-red-700 active:bg-red-600;
   }
 
   .btn-small {
@@ -98,11 +112,11 @@ body {
   }
 
   .badge {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-gray-alpha-400 bg-background-100 px-2.5 py-0.5 text-label-12 text-gray-900;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-gray-alpha-400 bg-background-200 px-2.5 py-0.5 text-label-12 text-gray-900;
   }
 
   .modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-gray-alpha-700 p-4;
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-gray-alpha-800 p-4;
   }
 
   .modal-panel {
@@ -110,7 +124,7 @@ body {
   }
 
   .link {
-    @apply text-blue-700 hover:text-blue-800 hover:underline;
+    @apply text-blue-600 hover:text-blue-800 hover:underline;
   }
 }
 
