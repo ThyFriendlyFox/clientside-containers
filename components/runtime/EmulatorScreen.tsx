@@ -5,6 +5,7 @@ import { bootEmulator, type V86Emulator } from "@/lib/v86-runtime";
 import type { Container, ContainerPreview } from "@/lib/container";
 import { getOsImage } from "@/lib/os-images";
 import { getConfig } from "@/lib/configs";
+import { createSerialTerminal, feedSerialByte, keyToSerialBytes } from "@/lib/serial-terminal";
 
 interface Props {
   container: Container;
@@ -42,17 +43,7 @@ function canvasThumbnail(canvas: HTMLCanvasElement, maxW = 320): string | null {
 
 // Map a keyboard event to bytes for the serial console.
 function keyToBytes(e: React.KeyboardEvent): string | null {
-  if (e.key === "Enter") return "\r";
-  if (e.key === "Backspace") return "\x7f";
-  if (e.key === "Tab") return "\t";
-  if (e.key === "Escape") return "\x1b";
-  if (e.ctrlKey && e.key.length === 1) {
-    const code = e.key.toUpperCase().charCodeAt(0) - 64;
-    if (code > 0 && code < 27) return String.fromCharCode(code);
-    return null;
-  }
-  if (e.key.length === 1) return e.key;
-  return null;
+  return keyToSerialBytes(e);
 }
 
 export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
@@ -72,19 +63,17 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
 
   useEffect(() => {
     let disposed = false;
-    let buffer = "";
+    const term = createSerialTerminal();
     let provisioned = false;
 
     function onSerial(byte: unknown) {
       if (typeof byte !== "number") return;
-      const ch = String.fromCharCode(byte);
-      buffer += ch;
-      if (buffer.length > 200_000) buffer = buffer.slice(-100_000);
-      serialTextRef.current = buffer;
-      if (!disposed) setSerial(buffer);
+      feedSerialByte(term, byte);
+      if (term.text.length > 200_000) term.text = term.text.slice(-100_000);
+      serialTextRef.current = term.text;
+      if (!disposed) setSerial(term.text);
 
-      // Once the shell prompt appears, run the config's commands in order.
-      if (config && config.commands.length && !provisioned && /[#$]\s$/.test(buffer)) {
+      if (config && config.commands.length && !provisioned && /[#$]\s$/.test(term.text)) {
         provisioned = true;
         let i = 0;
         const sendNext = () => {

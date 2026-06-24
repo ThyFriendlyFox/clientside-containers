@@ -60,9 +60,9 @@ export async function bootEmulator(opts: BootOptions): Promise<V86Emulator> {
 
   if (image.bzimage) config.bzimage = { url: asset(image.bzimage.path) };
   if (image.cmdline) config.cmdline = image.cmdline;
-  if (image.fda) config.fda = { url: image.fda.url };
-  if (image.cdrom) config.cdrom = { url: image.cdrom.url, async: true };
-  if (image.hda) config.hda = { url: image.hda.url, async: true, size: image.hda.sizeBytes };
+  if (image.fda) config.fda = { url: asset(image.fda.path) };
+  if (image.cdrom) config.cdrom = { url: asset(image.cdrom.path), async: true };
+  if (image.hda) config.hda = { url: asset(image.hda.path), async: true, size: image.hda.sizeBytes };
 
   return new V86(config);
 }
