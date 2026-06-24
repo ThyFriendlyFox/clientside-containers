@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { BOTTLED_APPS, TIERS, type ContainerTier } from "@/lib/container";
+import { TIERS, type ContainerTier } from "@/lib/container";
 import { AGENT_PRESETS } from "@/lib/agents";
 import { OS_IMAGES } from "@/lib/os-images";
+import { CONFIGS } from "@/lib/configs";
 
 interface Props {
   onCreate: (tier: ContainerTier, selectionId: string) => void;
@@ -14,11 +15,11 @@ const TIER_ORDER: ContainerTier[] = ["agent", "app", "minios"];
 
 export function NewContainerMenu({ onCreate, onClose }: Props) {
   const [agentId, setAgentId] = useState(AGENT_PRESETS[0].id);
-  const [appId, setAppId] = useState(BOTTLED_APPS[0].id);
+  const [configId, setConfigId] = useState(CONFIGS[0].id);
   const [imageId, setImageId] = useState(OS_IMAGES[0].id);
 
   const selectionFor = (tier: ContainerTier) =>
-    tier === "agent" ? agentId : tier === "app" ? appId : imageId;
+    tier === "agent" ? agentId : tier === "app" ? configId : imageId;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
@@ -87,13 +88,13 @@ export function NewContainerMenu({ onCreate, onClose }: Props) {
               {tier === "app" && (
                 <select
                   className="input mt-3"
-                  value={appId}
-                  onChange={(e) => setAppId(e.target.value)}
-                  aria-label="Bottled app"
+                  value={configId}
+                  onChange={(e) => setConfigId(e.target.value)}
+                  aria-label="Config"
                 >
-                  {BOTTLED_APPS.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label} — {a.blurb}
+                  {CONFIGS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label} — {c.blurb}
                     </option>
                   ))}
                 </select>

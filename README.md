@@ -44,9 +44,11 @@ The **New container** dialog offers preconfigured choices per tier:
   **Windows 1.01** (1.47 MB). The Windows image is proprietary Microsoft
   software, so it is loaded at runtime from its upstream host rather than
   redistributed here.
-- **App bottles** — a BusyBox shell, Lua, vi, and **OpenTTD** (a GPLv2
-  WebAssembly build of the game). The OpenTTD URL is configurable via
-  `NEXT_PUBLIC_OPENTTD_URL`.
+- **Configs** (App bottle) — a config is a sequence of commands the container
+  runs in the guest after boot (provisioning). Includes an interactive shell, a
+  `system-info` config, and an **OpenTTD** config that installs and launches
+  OpenTTD in the container. (The bundled minimal Linux can run shell configs;
+  launching a GUI app like OpenTTD needs a desktop-capable image.)
 
 ## How it works
 
@@ -61,14 +63,14 @@ components/
   SettingsModal.tsx Per-container settings (memory, networking, autostart)
   NewContainerMenu.tsx Pick a tier and create
   runtime/
-    EmulatorScreen.tsx  Mounts v86 (mini-OS + Linux app bottles)
+    EmulatorScreen.tsx  Mounts v86: serial terminal (Linux) or VGA (Windows)
     AgentConsole.tsx    Agent tier: YAML policy editor + API/egress console
-    WebBottle.tsx       Web app bottles (e.g. OpenTTD) in a frame
 lib/
   container.ts      Container model, tiers, bottled-app catalog
   containers-db.ts  IndexedDB persistence (containers survive reloads)
   agents.ts         Agent presets + per-agent OpenShell policies
   os-images.ts      Mini OS image catalog (Buildroot Linux, Windows 1.01)
+  configs.ts        App-tier configs: command sequences run in the container
   policy.ts         OpenShell policy: parse / serialize / evaluate egress
   v86-runtime.ts    Loads the v86 engine and boots the guest
   base-path.ts      Base path for static assets under a sub-path

@@ -11,6 +11,7 @@
 import { DEFAULT_AGENT_POLICY_YAML } from "./policy";
 import { getAgentPreset, policyYamlForAgent } from "./agents";
 import { getOsImage } from "./os-images";
+import { getConfig } from "./configs";
 
 export type ContainerTier = "agent" | "app" | "minios";
 
@@ -31,8 +32,8 @@ export interface Container {
   id: string;
   name: string;
   tier: ContainerTier;
-  /** For the `app` tier: which bottled program to launch. */
-  appId?: string;
+  /** For the `app` tier: which config (command sequence) to run after boot. */
+  configId?: string;
   /** For the `agent` tier: which preconfigured agent. */
   agentId?: string;
   /** For the `minios` tier: which OS image to boot. */
@@ -55,7 +56,7 @@ export const TIERS: Record<
   },
   app: {
     label: "App bottle",
-    blurb: "A single program running inside a minified Linux.",
+    blurb: "A minified Linux that runs a config — a sequence of commands — on boot.",
     defaultMemoryMb: 192,
     icon: "M4 4h16v6H4zM4 14h16v6H4z",
   },
@@ -66,58 +67,6 @@ export const TIERS: Record<
     icon: "M3 5h18v12H3zM8 21h8M12 17v4",
   },
 };
-
-/** Programs available to the `app` (bottle) tier. */
-export interface BottledApp {
-  id: string;
-  label: string;
-  blurb: string;
-  /**
-   * "linux": runs as a program inside the minified Linux (v86).
-   * "web":   a self-contained WebAssembly app rendered in a frame.
-   */
-  runtime: "linux" | "web";
-  /** Shell command run on boot (linux runtime). */
-  command?: string;
-  /** URL of the web app (web runtime). */
-  url?: string;
-}
-
-export const BOTTLED_APPS: BottledApp[] = [
-  {
-    id: "openttd",
-    label: "OpenTTD",
-    blurb: "The open-source transport tycoon game, as a WebAssembly build.",
-    runtime: "web",
-    // GPLv2 OpenTTD WebAssembly build. Override via NEXT_PUBLIC_OPENTTD_URL.
-    url: process.env.NEXT_PUBLIC_OPENTTD_URL || "https://swords02.github.io/openttd-online/play/",
-  },
-  {
-    id: "shell",
-    label: "BusyBox shell",
-    blurb: "An interactive POSIX shell.",
-    runtime: "linux",
-    command: "/bin/sh",
-  },
-  {
-    id: "lua",
-    label: "Lua REPL",
-    blurb: "Interactive Lua interpreter.",
-    runtime: "linux",
-    command: "lua",
-  },
-  {
-    id: "vi",
-    label: "vi editor",
-    blurb: "The vi text editor.",
-    runtime: "linux",
-    command: "vi",
-  },
-];
-
-export function getBottledApp(id: string | undefined): BottledApp {
-  return BOTTLED_APPS.find((a) => a.id === id) ?? BOTTLED_APPS[0];
-}
 
 export const DEFAULT_SETTINGS: Record<ContainerTier, ContainerSettings> = {
   agent: {
@@ -145,7 +94,7 @@ export function tierUsesEmulator(tier: ContainerTier): boolean {
  */
 export function buildContainer(tier: ContainerTier, selectionId?: string, name?: string): Container {
   const settings: ContainerSettings = { ...DEFAULT_SETTINGS[tier] };
-  let appId: string | undefined;
+  let configId: string | undefined;
   let agentId: string | undefined;
   let imageId: string | undefined;
   let prefix: string;
@@ -155,8 +104,8 @@ export function buildContainer(tier: ContainerTier, selectionId?: string, name?:
     settings.policyYaml = policyYamlForAgent(agentId);
     prefix = agentId;
   } else if (tier === "app") {
-    appId = getBottledApp(selectionId).id;
-    prefix = appId;
+    configId = getConfig(selectionId).id;
+    prefix = configId;
   } else {
     const image = getOsImage(selectionId);
     imageId = image.id;
@@ -168,7 +117,7 @@ export function buildContainer(tier: ContainerTier, selectionId?: string, name?:
     id: newId(),
     name: name?.trim() || `${prefix}-${Math.random().toString(36).slice(2, 5)}`,
     tier,
-    appId,
+    configId,
     agentId,
     imageId,
     status: "stopped",
@@ -180,6 +129,6 @@ export function buildContainer(tier: ContainerTier, selectionId?: string, name?:
 /** Short label describing a container's preconfigured selection. */
 export function containerSubtitle(c: Container): string {
   if (c.tier === "agent") return getAgentPreset(c.agentId).label;
-  if (c.tier === "app") return getBottledApp(c.appId).label;
+  if (c.tier === "app") return getConfig(c.configId).label;
   return getOsImage(c.imageId).label;
 }
