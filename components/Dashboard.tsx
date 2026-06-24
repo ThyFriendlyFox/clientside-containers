@@ -52,8 +52,6 @@ export function Dashboard() {
     setContainers((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }
 
-  // Create is optimistic: the container appears and opens immediately; we
-  // persist to IndexedDB in the background so storage latency never blocks UI.
   function handleCreate(tier: ContainerTier, selectionId: string) {
     const created = buildContainer(tier, selectionId);
     setCreating(false);
@@ -86,7 +84,6 @@ export function Dashboard() {
   containersRef.current = containers;
   function handlePreview(id: string, preview: ContainerPreview) {
     patchLocal(id, { preview });
-    // Throttle IndexedDB writes; previews update every couple seconds.
     const now = Date.now();
     if (now - lastPersist.current > 2000) {
       lastPersist.current = now;
@@ -101,24 +98,24 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-ink-800 bg-ink-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+    <div className="min-h-screen bg-background-100">
+      <header className="sticky top-0 z-30 border-b border-gray-alpha-400 bg-background-100/90 backdrop-blur">
+        <div className="mx-auto flex max-w-content items-center justify-between px-4 py-3 md:px-6">
           <Logo />
-          <button type="button" onClick={() => setCreating(true)} className="btn-primary text-sm">
-            + New container
+          <button type="button" onClick={() => setCreating(true)} className="btn-primary">
+            New Container
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-content px-4 py-8 md:px-6">
         {loading ? (
-          <p className="py-20 text-center text-sm text-zinc-500">Loading containers…</p>
+          <p className="py-20 text-center text-copy-14 text-gray-700">Loading containers…</p>
         ) : containers.length === 0 ? (
           <div className="card flex flex-col items-center gap-4 py-20 text-center">
-            <p className="text-sm text-zinc-400">No containers yet.</p>
-            <button type="button" onClick={() => setCreating(true)} className="btn-primary text-sm">
-              + New container
+            <p className="text-copy-14 text-gray-900">No containers yet.</p>
+            <button type="button" onClick={() => setCreating(true)} className="btn-primary">
+              New Container
             </button>
           </div>
         ) : (

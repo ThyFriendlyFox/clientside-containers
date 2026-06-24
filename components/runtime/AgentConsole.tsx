@@ -80,7 +80,6 @@ export function AgentConsole({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [container.id]);
 
-  // Preview = the most recent console lines, shown on the grid card.
   useEffect(() => {
     if (!onPreviewRef.current || !log.length) return;
     const text = log
@@ -118,37 +117,37 @@ export function AgentConsole({
 
   return (
     <div className="flex h-full w-full">
-      <div className="flex w-80 shrink-0 flex-col border-r border-ink-700 bg-ink-900">
-        <div className="border-b border-ink-700 px-3 py-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
-          OpenShell policy
+      <div className="flex w-80 shrink-0 flex-col border-r border-gray-alpha-400 bg-background-100">
+        <div className="border-b border-gray-alpha-400 px-3 py-2 text-label-12 font-medium text-gray-900">
+          OpenShell Policy
         </div>
         <textarea
           value={policyText}
           onChange={(e) => setPolicyText(e.target.value)}
           spellCheck={false}
-          className="flex-1 resize-none bg-ink-950 p-3 font-mono text-xs text-zinc-200 outline-none"
+          className="flex-1 resize-none bg-background-100 p-3 font-mono text-copy-13 text-gray-1000 outline-none"
         />
-        {policyError && <p className="px-3 py-1 text-xs text-red-400">{policyError}</p>}
-        <div className="border-t border-ink-700 p-2">
-          <button type="button" onClick={savePolicy} className="btn-primary w-full text-xs">
-            Apply policy
+        {policyError && <p className="px-3 py-1 text-copy-13 text-red-800">{policyError}</p>}
+        <div className="border-t border-gray-alpha-400 p-2">
+          <button type="button" onClick={savePolicy} className="btn-primary btn-small w-full">
+            Apply Policy
           </button>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col bg-ink-950">
-        <div className="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed">
+      <div className="flex flex-1 flex-col bg-black">
+        <div className="flex-1 overflow-auto p-4 font-mono text-copy-13 leading-relaxed">
           {log.length === 0 ? (
-            <p className="text-zinc-600">No calls yet. Send a request below.</p>
+            <p className="text-gray-700">No calls yet. Send a request below.</p>
           ) : (
             log.map((line, i) => (
               <div
                 key={i}
                 className={
-                  line.dir === "in" ? "text-sky-300" : line.dir === "out" ? "text-nv-green" : "text-zinc-500"
+                  line.dir === "in" ? "text-blue-500" : line.dir === "out" ? "text-green-500" : "text-gray-600"
                 }
               >
-                <span className="select-none text-zinc-600">
+                <span className="select-none text-gray-700">
                   {line.dir === "in" ? "→ " : line.dir === "out" ? "← " : "• "}
                 </span>
                 {line.text}
@@ -156,13 +155,13 @@ export function AgentConsole({
             ))
           )}
         </div>
-        <div className="border-t border-ink-700 p-3">
+        <div className="border-t border-gray-alpha-400 bg-background-100 p-3">
           <div className="mb-2 flex flex-wrap gap-1.5">
             {SAMPLES.map((s) => (
               <button
                 key={s.label}
                 type="button"
-                className="btn-ghost px-2 py-1 text-xs"
+                className="btn-secondary btn-small"
                 onClick={() => {
                   setMethod(s.method);
                   setPath(s.path);
@@ -179,14 +178,14 @@ export function AgentConsole({
               <option>POST</option>
             </select>
             <input value={path} onChange={(e) => setPath(e.target.value)} className="input flex-1" placeholder="/health" aria-label="Request path" />
-            <button type="button" onClick={send} disabled={!ready} className="btn-primary text-sm">
+            <button type="button" onClick={send} disabled={!ready} className="btn-primary">
               Send
             </button>
           </div>
           <input
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="input mt-2 font-mono text-xs"
+            className="input mt-2 font-mono text-copy-13"
             placeholder='JSON body, e.g. { "host": "api.github.com", "method": "GET" }'
             aria-label="Request body"
           />

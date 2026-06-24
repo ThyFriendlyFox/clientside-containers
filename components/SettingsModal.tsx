@@ -26,16 +26,16 @@ export function SettingsModal({ container, onSave, onDelete, onClose }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose}>
       <div
-        className="card w-full max-w-md p-5"
+        className="modal-panel max-w-md"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Container settings</h2>
-          <span className="badge border-ink-600 text-zinc-400">{TIERS[container.tier].label}</span>
+          <h2 className="text-heading-20 text-gray-1000">Container Settings</h2>
+          <span className="badge">{TIERS[container.tier].label}</span>
         </div>
 
         <label className="label">Name</label>
@@ -71,38 +71,38 @@ export function SettingsModal({ container, onSave, onDelete, onClose }: Props) {
           ))}
         </select>
 
-        <label className="mt-4 flex items-center gap-2 text-sm text-zinc-300">
+        <label className="mt-4 flex items-center gap-2 text-copy-14 text-gray-1000">
           <input
             type="checkbox"
             checked={autostart}
             onChange={(e) => setAutostart(e.target.checked)}
-            className="h-4 w-4 rounded border-ink-600 bg-ink-950"
+            className="h-4 w-4 rounded-sm border-gray-alpha-500 accent-blue-700"
           />
           Start automatically when the dashboard loads
         </label>
 
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className="mt-3 text-copy-13 text-gray-700">
           Memory and networking apply on next start.
         </p>
 
         <div className="mt-6 flex items-center justify-between">
           {confirmDelete ? (
-            <button type="button" onClick={onDelete} className="btn-danger text-sm">
-              Confirm delete
+            <button type="button" onClick={onDelete} className="btn-danger btn-small">
+              Confirm Delete
             </button>
           ) : (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="btn-danger text-sm">
-              Delete
+            <button type="button" onClick={() => setConfirmDelete(true)} className="btn-danger btn-small">
+              Delete Container
             </button>
           )}
           <div className="flex gap-2">
-            <button type="button" onClick={onClose} className="btn-ghost text-sm">
+            <button type="button" onClick={onClose} className="btn-secondary btn-small">
               Cancel
             </button>
             <button
               type="button"
               onClick={() => onSave(name, { memoryMb, network, autostart })}
-              className="btn-primary text-sm"
+              className="btn-primary btn-small"
             >
               Save
             </button>

@@ -176,17 +176,17 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
   }
 
   const overlay = phase !== "running" && (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 text-sm text-zinc-300">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 text-copy-14 text-gray-400">
       {phase === "error" ? (
         <>
-          <p className="text-red-400">Failed to boot</p>
-          <p className="max-w-md text-center text-xs text-zinc-500">{error}</p>
+          <p className="text-red-500">Boot failed</p>
+          <p className="max-w-md text-center text-copy-13 text-gray-600">{error}</p>
         </>
       ) : (
         <>
-          <span className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-600 border-t-nv-green" />
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-gray-700 border-t-blue-600" />
           <p>{phase === "loading" ? "Loading emulator…" : `Booting ${image.label}…`}</p>
-          <p className="text-xs text-zinc-600">first boot fetches the OS image</p>
+          <p className="text-copy-13 text-gray-700">First boot fetches the OS image</p>
         </>
       )}
     </div>
@@ -227,7 +227,7 @@ export function EmulatorScreen({ container, onStatus, onPreview }: Props) {
         >
           <pre
             ref={serialRef}
-            className="h-full w-full overflow-auto bg-black p-3 font-mono text-xs leading-snug text-zinc-200"
+            className="h-full w-full overflow-auto bg-black p-3 font-mono text-copy-13 leading-snug text-gray-300"
           >
             {serial || ""}
           </pre>

@@ -3,10 +3,10 @@
 import { TIERS, containerSubtitle, type Container } from "@/lib/container";
 
 const STATUS_DOT: Record<Container["status"], string> = {
-  stopped: "bg-zinc-500",
-  booting: "bg-amber-400 animate-pulse",
-  running: "bg-nv-green",
-  error: "bg-red-400",
+  stopped: "bg-gray-600",
+  booting: "bg-amber-600 animate-pulse",
+  running: "bg-green-700",
+  error: "bg-red-700",
 };
 
 interface Props {
@@ -20,19 +20,19 @@ export function ContainerCard({ container, onOpen, onSettings }: Props) {
   const subtitle = containerSubtitle(container);
 
   return (
-    <article className="card group relative flex flex-col overflow-hidden">
+    <article className="card group relative flex flex-col overflow-hidden transition-shadow duration-150 ease-geist hover:shadow-popover">
       <button
         type="button"
         onClick={onOpen}
-        className="flex flex-1 flex-col items-stretch text-left"
+        className="flex flex-1 flex-col items-stretch text-left focus-visible:outline-none"
         aria-label={`Open ${container.name}`}
       >
-        <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-ink-700 bg-ink-950">
+        <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-gray-alpha-400 bg-gray-100">
           {container.preview?.kind === "image" ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={container.preview.data} alt="" className="h-full w-full object-cover" />
           ) : container.preview?.kind === "text" ? (
-            <pre className="h-full w-full overflow-hidden whitespace-pre-wrap p-2 text-left font-mono text-[8px] leading-[1.25] text-zinc-400">
+            <pre className="h-full w-full overflow-hidden whitespace-pre-wrap p-2 text-left font-mono text-[8px] leading-[1.25] text-gray-800">
               {container.preview.data}
             </pre>
           ) : (
@@ -41,24 +41,24 @@ export function ContainerCard({ container, onOpen, onSettings }: Props) {
               height="44"
               viewBox="0 0 24 24"
               fill="none"
-              className="text-ink-600 transition-colors group-hover:text-nv-green/70"
+              className="text-gray-500 transition-colors group-hover:text-gray-800"
             >
               <path d={tier.icon} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
           {container.preview && (
-            <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-zinc-300 backdrop-blur">
-              preview
+            <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-sm bg-gray-alpha-800 px-1.5 py-0.5 text-label-12 text-background-100">
+              Preview
             </span>
           )}
-          <span className="absolute inset-x-0 bottom-0 translate-y-full bg-nv-green/90 py-1 text-center text-xs font-medium text-black transition-transform group-hover:translate-y-0">
-            {container.status === "running" ? "Open interface" : "Start & open"}
+          <span className="absolute inset-x-0 bottom-0 translate-y-full bg-gray-1000 py-1 text-center text-button-12 text-background-100 transition-transform duration-150 ease-geist group-hover:translate-y-0">
+            {container.status === "running" ? "Open Interface" : "Start & Open"}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2 p-3">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-medium text-white">{container.name}</h3>
-            <p className="truncate text-xs text-zinc-500">{subtitle}</p>
+            <h3 className="truncate text-heading-14 text-gray-1000">{container.name}</h3>
+            <p className="truncate text-label-12 text-gray-700">{subtitle}</p>
           </div>
           <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[container.status]}`} title={container.status} />
         </div>
@@ -66,7 +66,7 @@ export function ContainerCard({ container, onOpen, onSettings }: Props) {
       <button
         type="button"
         onClick={onSettings}
-        className="absolute right-2 top-2 rounded-md border border-ink-700 bg-ink-900/80 p-1.5 text-zinc-400 opacity-0 backdrop-blur transition-opacity hover:text-white group-hover:opacity-100 focus:opacity-100"
+        className="absolute right-2 top-2 rounded-sm border border-gray-alpha-400 bg-background-100 p-1.5 text-gray-700 opacity-0 shadow-card transition-opacity duration-150 ease-geist hover:bg-gray-100 hover:text-gray-1000 group-hover:opacity-100 focus-visible:opacity-100"
         aria-label={`Settings for ${container.name}`}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
