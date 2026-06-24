@@ -28,15 +28,29 @@ export function ContainerCard({ container, onOpen, onSettings }: Props) {
         aria-label={`Open ${container.name}`}
       >
         <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-ink-700 bg-ink-950">
-          <svg
-            width="44"
-            height="44"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-ink-600 transition-colors group-hover:text-nv-green/70"
-          >
-            <path d={tier.icon} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {container.preview?.kind === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={container.preview.data} alt="" className="h-full w-full object-cover" />
+          ) : container.preview?.kind === "text" ? (
+            <pre className="h-full w-full overflow-hidden whitespace-pre-wrap p-2 text-left font-mono text-[8px] leading-[1.25] text-zinc-400">
+              {container.preview.data}
+            </pre>
+          ) : (
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="text-ink-600 transition-colors group-hover:text-nv-green/70"
+            >
+              <path d={tier.icon} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {container.preview && (
+            <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-zinc-300 backdrop-blur">
+              preview
+            </span>
+          )}
           <span className="absolute inset-x-0 bottom-0 translate-y-full bg-nv-green/90 py-1 text-center text-xs font-medium text-black transition-transform group-hover:translate-y-0">
             {container.status === "running" ? "Open interface" : "Start & open"}
           </span>

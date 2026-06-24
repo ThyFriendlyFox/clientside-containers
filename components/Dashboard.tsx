@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import { ContainerCard } from "./ContainerCard";
 import { ContainerStage } from "./ContainerStage";
@@ -10,10 +10,17 @@ import {
   deleteContainer,
   listContainers,
   persistContainer,
+  saveContainer,
   setStatus,
   updateSettings,
 } from "@/lib/containers-db";
-import { buildContainer, type Container, type ContainerSettings, type ContainerTier } from "@/lib/container";
+import {
+  buildContainer,
+  type Container,
+  type ContainerPreview,
+  type ContainerSettings,
+  type ContainerTier,
+} from "@/lib/container";
 
 export function Dashboard() {
   const [containers, setContainers] = useState<Container[]>([]);
@@ -74,6 +81,20 @@ export function Dashboard() {
     deleteContainer(id).catch((err) => console.error("delete failed", err));
   }
 
+  const lastPersist = useRef(0);
+  const containersRef = useRef(containers);
+  containersRef.current = containers;
+  function handlePreview(id: string, preview: ContainerPreview) {
+    patchLocal(id, { preview });
+    // Throttle IndexedDB writes; previews update every couple seconds.
+    const now = Date.now();
+    if (now - lastPersist.current > 2000) {
+      lastPersist.current = now;
+      const c = containersRef.current.find((x) => x.id === id);
+      if (c) saveContainer({ ...c, preview }).catch((err) => console.error("preview save failed", err));
+    }
+  }
+
   function handleStatus(id: string, status: Container["status"]) {
     patchLocal(id, { status });
     void setStatus(id, status);
@@ -119,6 +140,7 @@ export function Dashboard() {
           container={open}
           onClose={() => setOpenId(null)}
           onStatus={(s) => handleStatus(open.id, s)}
+          onPreview={(p) => handlePreview(open.id, p)}
         />
       )}
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BASE_PATH } from "@/lib/base-path";
 import { DEFAULT_AGENT_POLICY_YAML, parsePolicy } from "@/lib/policy";
 import { saveContainer } from "@/lib/containers-db";
-import type { Container } from "@/lib/container";
+import type { Container, ContainerPreview } from "@/lib/container";
 
 interface LogLine {
   dir: "in" | "out" | "sys";
@@ -18,7 +18,15 @@ const SAMPLES = [
   { label: "eval", method: "POST", path: "/eval", body: '{ "expr": "2 + 40" }' },
 ];
 
-export function AgentConsole({ container, onStatus }: { container: Container; onStatus?: (s: Container["status"]) => void }) {
+export function AgentConsole({
+  container,
+  onStatus,
+  onPreview,
+}: {
+  container: Container;
+  onStatus?: (s: Container["status"]) => void;
+  onPreview?: (p: ContainerPreview) => void;
+}) {
   const workerRef = useRef<Worker | null>(null);
   const reqId = useRef(0);
   const pending = useRef(new Map<number, (v: { status: number; body: unknown }) => void>());
@@ -29,6 +37,8 @@ export function AgentConsole({ container, onStatus }: { container: Container; on
   const [log, setLog] = useState<LogLine[]>([]);
   const [policyText, setPolicyText] = useState(container.settings.policyYaml ?? DEFAULT_AGENT_POLICY_YAML);
   const [policyError, setPolicyError] = useState<string | null>(null);
+  const onPreviewRef = useRef(onPreview);
+  onPreviewRef.current = onPreview;
 
   const applyPolicy = useCallback(
     (text: string) => {
@@ -69,6 +79,16 @@ export function AgentConsole({ container, onStatus }: { container: Container; on
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [container.id]);
+
+  // Preview = the most recent console lines, shown on the grid card.
+  useEffect(() => {
+    if (!onPreviewRef.current || !log.length) return;
+    const text = log
+      .slice(-10)
+      .map((l) => (l.dir === "in" ? "→ " : l.dir === "out" ? "← " : "• ") + l.text)
+      .join("\n");
+    onPreviewRef.current({ kind: "text", data: text, at: new Date().toISOString() });
+  }, [log]);
 
   const send = useCallback(() => {
     const worker = workerRef.current;
